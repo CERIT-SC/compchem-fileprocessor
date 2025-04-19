@@ -12,16 +12,20 @@ import (
 	"time"
 
 	"fi.muni.cz/upload-processor/v2/config"
+	"fi.muni.cz/upload-processor/v2/routes"
 	"go.uber.org/zap"
 )
 
-func NewServer(ctx context.Context, logger *zap.Logger) http.Handler {
+// credit to: https://grafana.com/blog/2024/02/09/how-i-write-http-services-in-go-after-13-years/
+func NewServer(ctx context.Context, logger *zap.Logger, apiContext string) http.Handler {
 	mux := http.NewServeMux()
+
+	routes.AddRoutes(logger, mux, apiContext)
 
 	return mux
 }
 
-func run(ctx context.Context, args []string) error {
+func run(ctx context.Context, args []string, ready chan<- struct{}) error {
 	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
 	defer cancel()
 	logger, _ := zap.NewProduction()
@@ -31,7 +35,7 @@ func run(ctx context.Context, args []string) error {
 		return err
 	}
 
-	srv := NewServer(ctx, logger)
+	srv := NewServer(ctx, logger, config.ApiContext)
 	httpServer := &http.Server{
 		Addr:    net.JoinHostPort(config.Server.Host, strconv.Itoa(config.Server.Port)),
 		Handler: srv,
@@ -43,6 +47,9 @@ func run(ctx context.Context, args []string) error {
 			zap.String("host", config.Server.Host),
 			zap.Int("port", config.Server.Port),
 		)
+
+		close(ready)
+
 		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			logger.Error("Error listening", zap.Error(err))
 		}
@@ -66,7 +73,9 @@ func run(ctx context.Context, args []string) error {
 
 func main() {
 	ctx := context.Background()
-	if err := run(ctx, os.Args); err != nil {
+	ready := make(chan struct{})
+
+	if err := run(ctx, os.Args, ready); err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err)
 		os.Exit(1)
 	}

@@ -10,7 +10,9 @@ import (
 )
 
 type Config struct {
-	Server Server `yaml:"server"`
+	Server      Server      `yaml:"server"`
+	ApiContext  string      `yaml:"context-path"`
+	CompchemApi CompchemApi `yaml:"compchem"`
 }
 
 type Server struct {
@@ -18,11 +20,13 @@ type Server struct {
 	Port int    `yaml:"port"`
 }
 
+type CompchemApi struct {
+	Url string `yaml:"url"`
+}
+
 func LoadConfig(logger *zap.Logger, executablePath string) (*Config, error) {
 	DEFAULT_CONFIG_NAME := "server-config.yaml"
-	execDir := filepath.Dir(executablePath)
-
-	configPath := filepath.Join(execDir, "config", DEFAULT_CONFIG_NAME)
+	configPath := filepath.Join(executablePath, DEFAULT_CONFIG_NAME)
 
 	logger.Info("Loading config", zap.String("config_path", configPath))
 
