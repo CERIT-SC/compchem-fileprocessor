@@ -1,4 +1,4 @@
-module fi.muni.cz/upload-processor/v2
+module fi.muni.cz/invenio-file-processor/v2
 
 go 1.24.2
 

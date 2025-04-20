@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: download-files-template
+spec:
+  entrypoint: download-files
+  arguments:
+    parameters:
+    - name: base-url
+    - name: file-ids
+
+  templates:
+  - name: download-files
+    inputs:
+      parameters:
+      - name: base-url
+      - name: file-ids
+    container:
+      image: # TODO: test then upload image
+      command: [sh, "-c"]
+      args:
+        - |
+          FILE_IDS=$(echo "{{inputs.parameters.file-ids}}" | tr ',' ' ')
+          ./read-files.sh "{{inputs.parameters.base-url}}" $FILE_IDS
+    outputs:
+      artifacts:
+      - name: downloaded-files
+        path: /script/files 

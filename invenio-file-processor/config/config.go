@@ -13,6 +13,7 @@ type Config struct {
 	Server      Server      `yaml:"server"`
 	ApiContext  string      `yaml:"context-path"`
 	CompchemApi CompchemApi `yaml:"compchem"`
+	ArgoApi     ArgoApi     `yaml:"argo-workflow"`
 }
 
 type Server struct {
@@ -22,6 +23,11 @@ type Server struct {
 
 type CompchemApi struct {
 	Url string `yaml:"url"`
+}
+
+type ArgoApi struct {
+	Url       string `yaml:"url"`
+	Namespace string `yaml:"namespace"`
 }
 
 func LoadConfig(logger *zap.Logger, executablePath string) (*Config, error) {
