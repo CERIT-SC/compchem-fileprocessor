@@ -1,0 +1,13 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: read-files-12345-1
+spec:
+  workflowTemplateRef:
+    name: read-files-template
+  arguments:
+    parameters:
+    - name: base-url
+      value: http://localhost:5000/api/experiments/
+    - name: file-ids
+      value: 123,456,789

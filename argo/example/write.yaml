@@ -1,0 +1,16 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: write-files-12345-1
+spec:
+  workflowTemplateRef:
+    name: upload-files-template
+  arguments:
+    parameters:
+    - name: base-url
+      value: https://example.com/api
+    - name: record-id
+      value: 12345
+    artifacts:
+    - name: files
+      from: "{{steps.read.outputs.artifacts.downloaded-files}}"

@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: upload-files-template
+spec:
+  entrypoint: upload-files
+  arguments:
+    parameters:
+    - name: base-url
+    - name: record-id
+    artifacts:
+    - name: files
+      path: /files  # Must match the output path from the read-files step
+
+  templates:
+  - name: upload-files
+    inputs:
+      parameters:
+      - name: base-url
+      - name: record-id
+      artifacts:
+      - name: files
+        path: /files
+    container:
+      image: your-docker-registry/your-upload-image:tag
+      command: [sh, "-c"]
+      args:
+        - ./write-files.sh "{{inputs.parameters.base-url}}" "{{inputs.parameters.record-id}}"

@@ -1,0 +1,44 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: read-write-12345-1
+spec:
+  entrypoint: read-then-write
+  arguments:
+    parameters:
+    - name: base-url
+      value: https://example.com/api
+    - name: file-ids
+      value: 123,456,789
+    - name: record-id
+      value: 12345
+
+  templates:
+  - name: read-then-write
+    dag:
+      tasks:
+      - name: read-files-12345-1
+        templateRef:
+          name: read-files-template
+        arguments:
+          parameters:
+          - name: base-url
+            value: "{{workflow.parameters.base-url}}"
+          - name: file-ids
+            value: "{{workflow.parameters.file-ids}}"
+
+      # PROCESS HERE
+
+      - name: write-files-12345-1
+        dependencies: [read-files]
+        templateRef:
+          name: upload-files-template
+        arguments:
+          parameters:
+          - name: base-url
+            value: "{{workflow.parameters.base-url}}"
+          - name: record-id
+            value: "{{workflow.parameters.record-id}}"
+          artifacts:
+          - name: files
+            from: "{{tasks.read-files.outputs.artifacts.downloaded-files}}"
