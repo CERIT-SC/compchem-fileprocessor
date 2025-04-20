@@ -1,9 +1,9 @@
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
 metadata:
-  name: upload-files-template
+  name: write-files-template 
 spec:
-  entrypoint: upload-files
+  entrypoint: write-files 
   arguments:
     parameters:
     - name: base-url

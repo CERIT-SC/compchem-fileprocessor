@@ -32,7 +32,7 @@ spec:
       - name: write-files-12345-1
         dependencies: [read-files]
         templateRef:
-          name: upload-files-template
+          name: write-files-template
         arguments:
           parameters:
           - name: base-url

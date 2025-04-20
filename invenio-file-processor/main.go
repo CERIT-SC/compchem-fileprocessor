@@ -11,8 +11,8 @@ import (
 	"sync"
 	"time"
 
-	"fi.muni.cz/upload-processor/v2/config"
-	"fi.muni.cz/upload-processor/v2/routes"
+	"fi.muni.cz/invenio-file-processor/v2/config"
+	"fi.muni.cz/invenio-file-processor/v2/routes"
 	"go.uber.org/zap"
 )
 
