@@ -7,29 +7,21 @@ fi
 
 URL="$1" # https://localhost:5000/api/experiments
 shift
-RECORD_ID="$2" # ew6jd-p8175
+RECORD_ID="$1" # ew6jd-p8175
 shift 
 
 DOWNLOAD_DIR="/files"
 mkdir -p $DOWNLOAD_DIR
 
 for FILE_ID in "$@"; do
-  DOWNLOAD_URL="${URL}/${RECORD_ID$}/draft/files/${FILE_ID}/content"
+  DOWNLOAD_URL="${URL}/${RECORD_ID}/draft/files/${FILE_ID}/content"
   OUTPUT_FILE="${DOWNLOAD_DIR}/${FILE_ID}"
 
   echo "Downloading from: $DOWNLOAD_URL"
   echo "Saving to: $OUTPUT_FILE"
 
-  wget --no-check-certificate -H "Host: localhost" "$DOWNLOAD_URL" -O "$OUTPUT_FILE"
+  wget --no-check-certificate "$DOWNLOAD_URL" -O "$OUTPUT_FILE" || { echo "Failed to donwnload ${DOWNLOAD_URL}"; exit 1; }
 
-  if [ $? -eq 0 ]; then
-    echo "Downloaded $FILE_ID successfully."
-  else
-    echo "Failed to download $FILE_ID"
-    exit 1
-  fi
-
-  echo
 done
 
 exit 0

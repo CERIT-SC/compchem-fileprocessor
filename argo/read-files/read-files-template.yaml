@@ -17,7 +17,7 @@ spec:
       - name: record-id
       - name: file-ids
     container:
-      image: # TODO: test then upload image
+      image: read-files:0.0.1 
       command: [sh, "-c"]
       args:
         - |

@@ -19,6 +19,6 @@ echo "building write"
 
 cd write-files
 
-docker build write-files/Dockerfile -t write-files:$VERSION
+docker build . -t write-files:$VERSION
 
 exit 0

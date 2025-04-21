@@ -22,7 +22,7 @@ spec:
       - name: files
         path: /files
     container:
-      image: your-docker-registry/your-upload-image:tag
+      image: write-files:0.0.1 
       command: [sh, "-c"]
       args:
         - ./write-files.sh "{{inputs.parameters.base-url}}" "{{inputs.parameters.record-id}}"
