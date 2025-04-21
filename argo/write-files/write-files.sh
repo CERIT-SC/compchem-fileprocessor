@@ -20,18 +20,19 @@ for FILE_PATH in "$FILES_DIR"/*; do
   FILE_NAME=$(basename "$FILE_PATH")
   echo "Uploading file: $FILE_NAME"
 
+  # TODO: temporary curl headers, -k -H 
+
   echo "Registering metadata"
-  curl -sSf -X POST "${BASE_URL}/${RECORD_ID}/draft/files" \
+  curl -k -H "Host: localhost" -X POST "${BASE_URL}/${RECORD_ID}/draft/files" \
     -H "Content-Type: application/json" \
-    -d "{\"key\": \"${FILE_NAME}\"}" || { echo "Failed to register $FILE_NAME"; exit 1; }
+    -d "[{\"key\": \"${FILE_NAME}\"}]" || { echo "Failed to register $FILE_NAME"; exit 1; }
 
   echo "Uploading content"
-  curl -sSf -X POST "${BASE_URL}/${RECORD_ID}/draft/files/${FILE_NAME}/content" \
+    curl -k -H "Host: localhost" -H "Content-Type application/octet-stream" -X PUT "${BASE_URL}/${RECORD_ID}/draft/files/${FILE_NAME}/content" \
     --data-binary "@${FILE_PATH}" || { echo "Failed to upload content for $FILE_NAME"; exit 1; }
 
   echo "Committing file"
-  curl -sSf -X POST "${BASE_URL}/${RECORD_ID}/draft/files/${FILE_NAME}/commit" \
-    -H "Content-Length: 0" || { echo "Failed to commit $FILE_NAME"; exit 1; }
+  curl -k -H "Host: localhost" -X POST "${BASE_URL}/${RECORD_ID}/draft/files/${FILE_NAME}/commit" || { echo "Failed to commit $FILE_NAME"; exit 1; }
 
   echo "$FILE_NAME uploaded and committed successfully"
 done
