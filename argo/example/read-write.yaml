@@ -7,11 +7,11 @@ spec:
   arguments:
     parameters:
     - name: base-url
-      value: https://example.com/api
+      value: https://localhost:5000/api/experiments 
     - name: file-ids
-      value: 123,456,789
+      value: empty.txt 
     - name: record-id
-      value: 12345
+      value: ew6jd-p8175 
 
   templates:
   - name: read-then-write

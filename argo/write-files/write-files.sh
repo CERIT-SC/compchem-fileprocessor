@@ -12,7 +12,7 @@ if [ -z "$BASE_URL" ] || [ -z "$RECORD_ID" ]; then
 fi
 
 if [ ! -d "$FILES_DIR" ]; then
-  echo "Directory $FILES_DIR does not exist."
+  echo "Directory $FILES_DIR is not present."
   exit 1
 fi
 
@@ -23,16 +23,20 @@ for FILE_PATH in "$FILES_DIR"/*; do
   # TODO: temporary curl headers, -k -H 
 
   echo "Registering metadata"
-  curl -k -H "Host: localhost" -X POST "${BASE_URL}/${RECORD_ID}/draft/files" \
+  curl -f -k -H "Host: localhost" -X POST "${BASE_URL}/${RECORD_ID}/draft/files" \
     -H "Content-Type: application/json" \
     -d "[{\"key\": \"${FILE_NAME}\"}]" || { echo "Failed to register $FILE_NAME"; exit 1; }
+  
+  echo "\n"
 
   echo "Uploading content"
-    curl -k -H "Host: localhost" -H "Content-Type application/octet-stream" -X PUT "${BASE_URL}/${RECORD_ID}/draft/files/${FILE_NAME}/content" \
+    curl -f -k -H "Host: localhost" -H "Content-Type: application/octet-stream" -X PUT "${BASE_URL}/${RECORD_ID}/draft/files/${FILE_NAME}/content" \
     --data-binary "@${FILE_PATH}" || { echo "Failed to upload content for $FILE_NAME"; exit 1; }
 
+  echo "\n"
+
   echo "Committing file"
-  curl -k -H "Host: localhost" -X POST "${BASE_URL}/${RECORD_ID}/draft/files/${FILE_NAME}/commit" || { echo "Failed to commit $FILE_NAME"; exit 1; }
+  curl -f -k -H "Host: localhost" -X POST "${BASE_URL}/${RECORD_ID}/draft/files/${FILE_NAME}/commit" || { echo "Failed to commit $FILE_NAME"; exit 1; }
 
   echo "$FILE_NAME uploaded and committed successfully"
 done

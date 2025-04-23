@@ -7,5 +7,6 @@ WORKDIR /script
 COPY ./write-files.sh . 
 
 RUN chmod +x ./write-files.sh
+RUN mkdir /files
 
 ENTRYPOINT [ "/script/write-files.sh" ]

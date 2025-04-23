@@ -17,7 +17,7 @@ spec:
       - name: record-id
       - name: file-ids
     container:
-      image: read-files:0.0.1 
+      image: read-files:0.0.4 
       command: [sh, "-c"]
       args:
         - |
