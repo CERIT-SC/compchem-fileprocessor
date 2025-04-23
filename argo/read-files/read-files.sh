@@ -20,7 +20,7 @@ for FILE_ID in "$@"; do
   echo "Saving to: $OUTPUT_FILE"
   
   REDIRECT_OUTPUT=$(wget --no-check-certificate --header="Host: localhost:5000" --max-redirect=0 "$DOWNLOAD_URL" -O "$OUTPUT_FILE" 2>&1)
-  REDIRECT_URL=$(echo "$REDIRECT_OUTPUT" | grep -o "Location:.*" | cut -d' ' -f2- | sed 's/ \[following\]$//')
+  REDIRECT_URL=$(echo "$REDIRECT_OUTPUT" | grep -o "Location:.*" | cut -d' ' -f2- | sed 's/ \[following\]$//' | sed 's/127.0.0.1/172.22.0.3/')
   
   if [ -z "$REDIRECT_URL" ]; then
     echo "Failed to get redirect URL from ${DOWNLOAD_URL}"
@@ -30,7 +30,7 @@ for FILE_ID in "$@"; do
   
   echo "Redirected to: $REDIRECT_URL"
   
-  wget -O "$OUTPUT_FILE" "$REDIRECT_URL" || { 
+  wget --header="Host: 127.0.0.1:9000" -O "$OUTPUT_FILE" "$REDIRECT_URL" || { 
     echo "Failed to download from redirect URL"; 
     exit 1; 
   }

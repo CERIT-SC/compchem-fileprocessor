@@ -1,13 +1,13 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Workflow
 metadata:
-  generateName: read-write-12345-1
+  name: read-write-ew6jd-p8175-1
 spec:
   entrypoint: read-then-write
   arguments:
     parameters:
     - name: base-url
-      value: https://localhost:5000/api/experiments 
+      value: https://host-service.argo.svc.cluster.local:5000/api/experiments
     - name: file-ids
       value: empty.txt 
     - name: record-id
@@ -19,20 +19,24 @@ spec:
       tasks:
       - name: read-files-12345-1
         templateRef:
-          name: read-files-template
+          name: download-files-template
+          template: download-files
         arguments:
           parameters:
           - name: base-url
             value: "{{workflow.parameters.base-url}}"
+          - name: record-id
+            value: "{{workflow.parameters.record-id}}"
           - name: file-ids
             value: "{{workflow.parameters.file-ids}}"
 
       # PROCESS HERE
 
       - name: write-files-12345-1
-        dependencies: [read-files]
+        dependencies: [read-files-12345-1]
         templateRef:
-          name: write-files-template
+          name: write-files-template 
+          template: upload-files 
         arguments:
           parameters:
           - name: base-url
@@ -40,5 +44,5 @@ spec:
           - name: record-id
             value: "{{workflow.parameters.record-id}}"
           artifacts:
-          - name: files
-            from: "{{tasks.read-files.outputs.artifacts.downloaded-files}}"
+          - name: downloaded-files 
+            from: "{{tasks.read-files-12345-1.outputs.artifacts.downloaded-files}}"

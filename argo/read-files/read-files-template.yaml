@@ -7,8 +7,8 @@ spec:
   arguments:
     parameters:
     - name: base-url
+    - name: record-id
     - name: file-ids
-
   templates:
   - name: download-files
     inputs:
@@ -17,13 +17,12 @@ spec:
       - name: record-id
       - name: file-ids
     container:
-      image: read-files:0.0.4 
+      image: xkollar173/argo-read-files:0.0.3 
       command: [sh, "-c"]
       args:
         - |
-          FILE_IDS=$(echo "{{inputs.parameters.file-ids}}" | tr ',' ' ')
-          ./read-files.sh "{{inputs.parameters.base-url}}" $FILE_IDS
+          ./read-files.sh "{{inputs.parameters.base-url}}" "{{inputs.parameters.record-id}}" "{{inputs.parameters.file-ids}}" 
     outputs:
       artifacts:
       - name: downloaded-files
-        path: /script/files 
+        path: /files 

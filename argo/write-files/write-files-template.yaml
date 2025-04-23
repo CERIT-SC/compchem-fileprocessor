@@ -10,8 +10,7 @@ spec:
     - name: record-id
     artifacts:
     - name: files
-      path: /files  # Must match the output path from the read-files step
-
+      path: /files
   templates:
   - name: upload-files
     inputs:
@@ -19,10 +18,10 @@ spec:
       - name: base-url
       - name: record-id
       artifacts:
-      - name: files
+      - name: downloaded-files 
         path: /files
     container:
-      image: write-files:0.0.1 
+      image: xkollar173/argo-write-files:0.0.2 
       command: [sh, "-c"]
       args:
         - ./write-files.sh "{{inputs.parameters.base-url}}" "{{inputs.parameters.record-id}}"

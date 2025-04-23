@@ -1,6 +1,7 @@
 FROM alpine:3.21.3
 
 RUN apk add --no-cache bash
+RUN apk add --no-cache --upgrade wget
 
 WORKDIR /script
 
