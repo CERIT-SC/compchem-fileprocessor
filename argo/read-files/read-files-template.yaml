@@ -17,12 +17,12 @@ spec:
       - name: record-id
       - name: file-ids
     container:
-      image: xkollar173/argo-read-files:0.0.3 
+      image: xkollar173/argo-read-files:0.0.4 
       command: [sh, "-c"]
       args:
         - |
           ./read-files.sh "{{inputs.parameters.base-url}}" "{{inputs.parameters.record-id}}" "{{inputs.parameters.file-ids}}" 
     outputs:
       artifacts:
-      - name: downloaded-files
-        path: /files 
+      - name: output-files
+        path: /output 

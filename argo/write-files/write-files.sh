@@ -4,7 +4,7 @@ set -e
 
 BASE_URL="$1"
 RECORD_ID="$2"
-FILES_DIR="/files"
+FILES_DIR="/input"
 
 if [ -z "$BASE_URL" ] || [ -z "$RECORD_ID" ]; then
   echo "Usage: $0 <base_url> <record_id>"

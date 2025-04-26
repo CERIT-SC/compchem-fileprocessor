@@ -2,9 +2,9 @@ package requests
 
 type Task struct {
 	Name              string            `yaml:"name"`
-	Dependencies      []string          `yaml:"dependencies"`
+	Dependencies      string          `yaml:"dependencies"`
 	TemplateReference TemplateReference `yaml:"templateRef"`
-	Arguments         Arguments         `yaml:"arguments"`
+	Arguments         ParametersAndArtifacts         `yaml:"arguments"`
 }
 
 type Parameter struct {
@@ -17,7 +17,7 @@ type Artifact struct {
 	From string `json:"from"`
 }
 
-type Arguments struct {
+type ParametersAndArtifacts struct {
 	Parameters []Parameter `yaml:"parameters"`
 	Artifacts  []Artifact  `yaml:"artifacts"`
 }

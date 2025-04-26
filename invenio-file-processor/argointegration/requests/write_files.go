@@ -6,7 +6,7 @@ const WriteFilesTemplate = "write-files-%s-%s"
 
 func NewWriteWorkflow(
 	name string,
-	deps []string,
+	deps string,
 	predecessor string,
 	recordId string,
 	workflowId string,
@@ -18,7 +18,7 @@ func NewWriteWorkflow(
 			Name:     "write-files-template",
 			Template: "upload-files",
 		},
-		Arguments: Arguments{
+		Arguments: ParametersAndArtifacts{
 			Parameters: []Parameter{
 				{
 					Name:  "base-url",

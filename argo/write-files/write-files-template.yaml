@@ -9,8 +9,7 @@ spec:
     - name: base-url
     - name: record-id
     artifacts:
-    - name: files
-      path: /files
+    - name: input-files 
   templates:
   - name: upload-files
     inputs:
@@ -18,10 +17,10 @@ spec:
       - name: base-url
       - name: record-id
       artifacts:
-      - name: downloaded-files 
-        path: /files
+      - name: input-files 
+        path: /input
     container:
-      image: xkollar173/argo-write-files:0.0.2 
+      image: xkollar173/argo-write-files:0.0.3 
       command: [sh, "-c"]
       args:
         - ./write-files.sh "{{inputs.parameters.base-url}}" "{{inputs.parameters.record-id}}"

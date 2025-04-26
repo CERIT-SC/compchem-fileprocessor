@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: count-words-template 
+spec:
+  entrypoint: count-words
+  arguments:
+    artifacts:
+    - name: input-files
+    - name: output-files
+  templates:
+  - name: count-words
+    inputs:
+      artifacts:
+      - name: input-files 
+        path: /input
+    outputs:
+      artifacts:
+      - name: output-files 
+        path: /output 
+    container:
+      image: xkollar173/argo-count-words:0.0.1 
+      command: [sh, "-c"]
+      args:
+        - ./count-words.sh

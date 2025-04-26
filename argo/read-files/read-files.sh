@@ -10,7 +10,7 @@ shift
 RECORD_ID="$1" # ew6jd-p8175
 shift 
 
-DOWNLOAD_DIR="/files"
+DOWNLOAD_DIR="/output"
 mkdir -p $DOWNLOAD_DIR
 
 for FILE_ID in "$@"; do
@@ -36,4 +36,3 @@ for FILE_ID in "$@"; do
   }
 done
 
-exit 0

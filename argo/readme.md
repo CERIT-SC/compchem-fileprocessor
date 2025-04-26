@@ -31,7 +31,6 @@ On the machine use socat
 
 sudo socat TCP-LISTEN:5000,bind=$(ip -4 addr show docker0 | grep -Po 'inet \K[\d.]+'),fork TCP:localhost:5000 &
 
-
 Then from within a pod localhost:5000 is available on: host-service.argo.svc.cluster.local:5000
 
 must use header -H "Host: localhost"
