@@ -1,3 +1,18 @@
 server:
   host: localhost
   port: 8079
+
+context-path: "/api"
+
+argo-worfklows:
+  url: https://localhost:2746
+
+compchem:
+  url: https://localhost:5000
+
+workflows:
+  - name: count-words
+    filetype: txt
+    processing-templates:
+      - name: count-words-template
+        template: count-words

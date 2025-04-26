@@ -5,15 +5,13 @@ import "fmt"
 const WriteFilesTemplate = "write-files-%s-%s"
 
 func NewWriteWorkflow(
-	name string,
-	deps string,
-	predecessor string,
 	recordId string,
 	workflowId string,
+	previousTask string,
 ) *Task {
 	return &Task{
 		Name:         fmt.Sprintf(WriteFilesTemplate, recordId, workflowId),
-		Dependencies: deps,
+		Dependencies: fmt.Sprintf("[%s]", previousTask),
 		TemplateReference: TemplateReference{
 			Name:     "write-files-template",
 			Template: "upload-files",
@@ -31,11 +29,9 @@ func NewWriteWorkflow(
 			},
 			Artifacts: []Artifact{
 				{
-					Name: "downloaded-files",
+					Name: "input-files",
 					From: fmt.Sprintf(
-						"{{tasks."+ReadFilesTemplate+".outputs.artifacts.downloaded-files}}",
-						recordId,
-						workflowId,
+						"{{tasks.%s.outputs.artifacts.output-files}}", previousTask,
 					),
 				},
 			},

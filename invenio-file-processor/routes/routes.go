@@ -3,7 +3,7 @@ package routes
 import (
 	"net/http"
 
-	"fi.muni.cz/upload-processor/v2/jsonapi"
+	"fi.muni.cz/invenio-file-processor/v2/jsonapi"
 	"go.uber.org/zap"
 )
 

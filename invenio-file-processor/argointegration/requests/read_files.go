@@ -16,6 +16,7 @@ func NewReadFilesWorkflow(
       Template: "read-files",
     },
     Arguments: ParametersAndArtifacts{
+      Artifacts: []Artifact{},
 			Parameters: []Parameter{
 				{
 					Name:  "base-url",

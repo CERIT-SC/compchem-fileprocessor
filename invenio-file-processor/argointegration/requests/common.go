@@ -1,15 +1,15 @@
 package requests
 
 type Task struct {
-	Name              string            `yaml:"name"`
-	Dependencies      string          `yaml:"dependencies"`
-	TemplateReference TemplateReference `yaml:"templateRef"`
-	Arguments         ParametersAndArtifacts         `yaml:"arguments"`
+	Name              string            `json:"name"`
+	Dependencies      string          `json:"dependencies"`
+	TemplateReference TemplateReference `json:"templateRef"`
+	Arguments         ParametersAndArtifacts         `json:"arguments"`
 }
 
 type Parameter struct {
-	Name  string `yaml:"name"`
-	Value string `yaml:"value"`
+	Name  string `json:"name"`
+	Value string `json:"value"`
 }
 
 type Artifact struct {
@@ -18,11 +18,11 @@ type Artifact struct {
 }
 
 type ParametersAndArtifacts struct {
-	Parameters []Parameter `yaml:"parameters"`
-	Artifacts  []Artifact  `yaml:"artifacts"`
+	Parameters []Parameter `json:"parameters"`
+	Artifacts  []Artifact  `json:"artifacts"`
 }
 
 type TemplateReference struct {
-	Name     string `yaml:"name"`
-	Template string `yaml:"template"`
+	Name     string `json:"name"`
+	Template string `json:"template"`
 }

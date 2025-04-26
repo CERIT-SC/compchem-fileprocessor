@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
@@ -13,7 +14,8 @@ type Config struct {
 	Server      Server      `yaml:"server"`
 	ApiContext  string      `yaml:"context-path"`
 	CompchemApi CompchemApi `yaml:"compchem"`
-	ArgoApi     ArgoApi     `yaml:"argo-workflow"`
+	ArgoApi     ArgoApi     `yaml:"argo-workflows"`
+  Workflows []WorkflowConfig `yaml:"workflows"`
 }
 
 type Server struct {
@@ -28,6 +30,17 @@ type CompchemApi struct {
 type ArgoApi struct {
 	Url       string `yaml:"url"`
 	Namespace string `yaml:"namespace"`
+}
+
+type WorkflowConfig struct {
+  Name string `yaml:"name"`
+  Filetype string `yaml:"filetype"`
+  ProcessingTemplates []ProcessingTemplate `yaml:"processing-template"`
+}
+
+type ProcessingTemplate struct {
+  Name string `yaml:"name"`
+  Template string `yaml:"template"`
 }
 
 func LoadConfig(logger *zap.Logger, executablePath string) (*Config, error) {
@@ -81,7 +94,7 @@ func resolveConfig(logger *zap.Logger, configBytes []byte) (*Config, error) {
 
 	err := yaml.Unmarshal(configBytes, config)
 	if err != nil {
-		logger.Error("Error during config resolution", zap.Error(err))
+		logger.Error("rror during config resolution", zap.Error(err))
 		return nil, err
 	}
 
@@ -104,5 +117,38 @@ func validateConfig(logger *zap.Logger, cfg *Config) (*Config, map[string]string
 		cfg.Server.Port = DEFAULT_PORT
 	}
 
+  if len(cfg.Workflows) > 0 {
+    validateWorkflows(cfg.Workflows, errors)
+  }
+
 	return cfg, errors
+}
+
+func validateWorkflows(workflows []WorkflowConfig, errors map[string]string) {
+  errorTemplate := "%s-%d"
+
+  for index, workflow := range workflows {
+    if workflow.Name == "" {
+      errors[fmt.Sprintf(errorTemplate, "name", index)] = "missing name" 
+    }
+    if workflow.Filetype == "" {
+      errors[fmt.Sprintf(errorTemplate, "filetype", index)] = "missing filetype" 
+    }
+    if len(workflow.ProcessingTemplates) > 0 {
+      validateProcessingTemplates(workflow.ProcessingTemplates, index, errors)
+    }
+  }
+}
+
+func validateProcessingTemplates(templates []ProcessingTemplate, index int, errors map[string]string) {
+  errorTemplate := "template-" + strconv.Itoa(index) + "-%d"
+
+  for inx, template := range templates{
+    if template.Name == "" {
+      errors[fmt.Sprintf(errorTemplate, inx)] = "missing template name"
+    }
+    if template.Template == "" {
+      errors[fmt.Sprintf(errorTemplate, inx)] = "missing template"
+    } 
+  }
 }

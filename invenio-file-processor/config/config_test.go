@@ -94,5 +94,30 @@ func TestValidateConfig_ConfigOk_ConfigValidationOk(t *testing.T) {
 }
 
 func TestValidateConfig_ConfigNotOk_ConfigValidationNotOk(t *testing.T) {
-	// For now we don't care — test stub only
+	logger := zaptest.NewLogger(t)
+
+	cfg := &Config{
+		Server: Server{
+			Host: "127.0.0.1",
+			Port: 8080,
+		},
+    Workflows: []WorkflowConfig{
+      {
+        Name: "test",
+      },
+    },  
+	}
+
+	result, errs := validateConfig(logger, cfg)
+	if len(errs) != 1 {
+		t.Errorf("Expected 1 validation errors, got: %v", errs)
+	}
+
+	if result.Server.Host != "127.0.0.1" || result.Server.Port != 8080 {
+		t.Errorf("Unexpected config values after validation: %+v", result)
+	}
+
+  if len(result.Workflows) != 1 {
+    t.Errorf("Expected one workflow defined")
+  }
 }
