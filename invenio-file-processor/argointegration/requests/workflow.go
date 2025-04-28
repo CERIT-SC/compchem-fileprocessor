@@ -41,10 +41,10 @@ func constructWorkflowName(workflowName string, recordId string, workflowId stri
 	return fmt.Sprintf("%s-%s-%s", workflowName, recordId, workflowId)
 }
 
-func BuildWorkflow(conf config.WorkflowConfig, baseUrl string, workflowName string, workflowId string, recordId string) *Workflow {
+func BuildWorkflow(conf config.WorkflowConfig, baseUrl string, workflowName string, workflowId string, recordId string, fileIds []string) *Workflow {
 	tasks := constructLinearDag(conf.ProcessingTemplates, recordId, workflowId)
 
-	return newWorkflow(workflowName, recordId, workflowId, baseUrl, []string{}, tasks)
+	return newWorkflow(workflowName, recordId, workflowId, baseUrl, fileIds, tasks)
 }
 
 func newWorkflow(workflowName string,

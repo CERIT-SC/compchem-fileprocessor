@@ -12,6 +12,10 @@ func AddRoutes(logger *zap.Logger, mux *http.ServeMux, apiContext string) {
 	mux.Handle(buildPath(apiContext, "/health/readiness"), handleReady())
 }
 
+type ErrorResponse struct {
+	Message string `json:"message"`
+}
+
 func handleReady() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {

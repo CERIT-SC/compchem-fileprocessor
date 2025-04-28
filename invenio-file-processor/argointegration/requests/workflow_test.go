@@ -31,7 +31,7 @@ func TestBuildWorkflow_IntegrationTest(t *testing.T) {
 	}
 	
 	// Act
-	workflow := BuildWorkflow(workflowConfig, baseUrl, workflowName, workflowId, recordId)
+	workflow := BuildWorkflow(workflowConfig, baseUrl, workflowName, workflowId, recordId, []string{"test.txt", "test1.txt"})
 	
 	// Assert - In-memory representation
 	
@@ -48,7 +48,7 @@ func TestBuildWorkflow_IntegrationTest(t *testing.T) {
 	assert.Equal(t, "base-url", workflow.Spec.Arguments.Parameters[0].Name)
 	assert.Equal(t, baseUrl, workflow.Spec.Arguments.Parameters[0].Value)
 	assert.Equal(t, "file-ids", workflow.Spec.Arguments.Parameters[1].Name)
-	assert.Equal(t, "", workflow.Spec.Arguments.Parameters[1].Value) // Empty string as no file IDs were provided
+	assert.Equal(t, "test.txt test1.txt", workflow.Spec.Arguments.Parameters[1].Value) // Empty string as no file IDs were provided
 	assert.Equal(t, "record-id", workflow.Spec.Arguments.Parameters[2].Name)
 	assert.Equal(t, recordId, workflow.Spec.Arguments.Parameters[2].Value)
 	
@@ -118,7 +118,7 @@ func TestBuildWorkflow_IntegrationTest(t *testing.T) {
 					},
 					{
 						"name": "file-ids",
-						"value": ""
+						"value": "test.txt test1.txt"
 					},
 					{
 						"name": "record-id",

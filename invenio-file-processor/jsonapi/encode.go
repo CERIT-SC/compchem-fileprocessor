@@ -1,6 +1,7 @@
 package jsonapi
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -13,4 +14,12 @@ func Encode[T any](w http.ResponseWriter, r *http.Request, status int, v T) erro
 		return fmt.Errorf("encode json: %w", err)
 	}
 	return nil
+}
+
+func EncodeRequestBody[T any](v T) (*bytes.Buffer, error) {
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(v); err != nil {
+		return nil, fmt.Errorf("encode request body: %w", err)
+	}
+	return &buf, nil
 }
