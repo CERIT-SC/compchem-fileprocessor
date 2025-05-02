@@ -7,6 +7,10 @@ import (
 	"fi.muni.cz/invenio-file-processor/v2/config"
 )
 
+type WorkflowWrapper struct {
+	Workflow Workflow `json:"workflow"`
+}
+
 type Workflow struct {
 	ApiVersion string   `json:"apiVersion"`
 	Kind       string   `json:"kind"`
@@ -41,7 +45,14 @@ func constructWorkflowName(workflowName string, recordId string, workflowId stri
 	return fmt.Sprintf("%s-%s-%s", workflowName, recordId, workflowId)
 }
 
-func BuildWorkflow(conf config.WorkflowConfig, baseUrl string, workflowName string, workflowId string, recordId string, fileIds []string) *Workflow {
+func BuildWorkflow(
+	conf config.WorkflowConfig,
+	baseUrl string,
+	workflowName string,
+	workflowId string,
+	recordId string,
+	fileIds []string,
+) *Workflow {
 	tasks := constructLinearDag(conf.ProcessingTemplates, recordId, workflowId)
 
 	return newWorkflow(workflowName, recordId, workflowId, baseUrl, fileIds, tasks)
@@ -92,7 +103,11 @@ func newWorkflow(workflowName string,
 	}
 }
 
-func constructLinearDag(conf []config.ProcessingTemplate, recordId string, workflowId string) []*Task {
+func constructLinearDag(
+	conf []config.ProcessingTemplate,
+	recordId string,
+	workflowId string,
+) []*Task {
 	result := []*Task{}
 
 	readStep := NewReadFilesWorkflow(recordId, workflowId)

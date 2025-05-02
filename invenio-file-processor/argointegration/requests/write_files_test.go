@@ -15,7 +15,7 @@ func TestWriteFiles_AllArgumentsSupplied_ProperlyFormedTask(t *testing.T) {
 	workflowId := "2"
 	previousTask := "count-words-12345-2"
 	expectedName := fmt.Sprintf(WriteFilesTemplate, recordId, workflowId)
-	expectedDependencies := fmt.Sprintf("[%s]", previousTask)
+	expectedDependencies := []string{previousTask}
 	expectedTemplateRefName := "write-files-template"
 	expectedTemplateRefTemplate := "upload-files"
 
@@ -30,18 +30,22 @@ func TestWriteFiles_AllArgumentsSupplied_ProperlyFormedTask(t *testing.T) {
 
 	// Verify parameters
 	assert.Equal(t, 2, len(task.Arguments.Parameters))
-	
+
 	// Check each parameter
 	assert.Equal(t, "base-url", task.Arguments.Parameters[0].Name)
 	assert.Equal(t, "{{workflow.parameters.base-url}}", task.Arguments.Parameters[0].Value)
-	
+
 	assert.Equal(t, "record-id", task.Arguments.Parameters[1].Name)
 	assert.Equal(t, "{{workflow.parameters.record-id}}", task.Arguments.Parameters[1].Value)
-	
+
 	// Verify artifacts
 	assert.Equal(t, 1, len(task.Arguments.Artifacts))
 	assert.Equal(t, "input-files", task.Arguments.Artifacts[0].Name)
-	assert.Equal(t, fmt.Sprintf("{{tasks.%s.outputs.artifacts.output-files}}", previousTask), task.Arguments.Artifacts[0].From)
+	assert.Equal(
+		t,
+		fmt.Sprintf("{{tasks.%s.outputs.artifacts.output-files}}", previousTask),
+		task.Arguments.Artifacts[0].From,
+	)
 }
 
 func TestWriteFiles_AllArgumentsSupplied_ProperlyFormedJson(t *testing.T) {
@@ -50,17 +54,17 @@ func TestWriteFiles_AllArgumentsSupplied_ProperlyFormedJson(t *testing.T) {
 	workflowId := "2"
 	previousTask := "count-words-12345-2"
 	task := NewWriteWorkflow(recordId, workflowId, previousTask)
-	
+
 	// Act
 	taskJson, err := json.Marshal(task)
-	
+
 	// Assert
 	assert.NoError(t, err)
-	
+
 	// Define expected JSON
 	expectedJson := `{
 		"name": "write-files-12345-2",
-		"dependencies": "[count-words-12345-2]",
+    "dependencies": ["count-words-12345-2"],
 		"templateRef": {
 			"name": "write-files-template",
 			"template": "upload-files"
@@ -84,22 +88,22 @@ func TestWriteFiles_AllArgumentsSupplied_ProperlyFormedJson(t *testing.T) {
 			]
 		}
 	}`
-	
+
 	// Normalize both JSON strings for comparison (remove whitespace differences)
-	var expected, actual any 
+	var expected, actual any
 	err = json.Unmarshal([]byte(expectedJson), &expected)
 	assert.NoError(t, err)
-	
+
 	err = json.Unmarshal(taskJson, &actual)
 	assert.NoError(t, err)
-	
+
 	// Re-marshal both to normalized format
 	expectedNormalized, err := json.Marshal(expected)
 	assert.NoError(t, err)
-	
+
 	actualNormalized, err := json.Marshal(actual)
 	assert.NoError(t, err)
-	
+
 	// Compare the normalized JSON strings
 	assert.Equal(t, string(expectedNormalized), string(actualNormalized))
 }

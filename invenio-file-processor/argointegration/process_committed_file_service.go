@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"fi.muni.cz/invenio-file-processor/v2/argointegration/requests"
 	"fi.muni.cz/invenio-file-processor/v2/config"
@@ -21,7 +22,7 @@ func ProcessCommittedFile(
 	recordId string,
 	fileName string,
 	filetype string,
-	configs []*config.WorkflowConfig,
+	configs []config.WorkflowConfig,
 ) error {
 	conf, err := findWorkflowConfig(configs, filetype)
 	if err != nil {
@@ -53,12 +54,12 @@ func ProcessCommittedFile(
 }
 
 func findWorkflowConfig(
-	configs []*config.WorkflowConfig,
+	configs []config.WorkflowConfig,
 	filetype string,
 ) (*config.WorkflowConfig, error) {
 	for _, conf := range configs {
-		if *&conf.Filetype == filetype {
-			return conf, nil
+		if conf.Filetype == filetype {
+			return &conf, nil
 		}
 	}
 
@@ -71,10 +72,16 @@ func submitWorkflow(
 	argoUrl string,
 	workflow *requests.Workflow,
 ) error {
-	logger.Info("Submitting workflow to argo", zap.String("workflow-name", workflow.Metadata.Name))
-	url := buildWorkflowUrl("argo", argoUrl, "submit")
+	url := buildWorkflowUrl("argo", argoUrl)
+	logger.Info(
+		"Submitting workflow to argo",
+		zap.String("workflow-name", workflow.Metadata.Name),
+		zap.String("url", url),
+	)
 
-	_, err := httpclient.PostRequest[any](ctx, logger, url, workflow)
+	_, err := httpclient.PostRequest[any](ctx, logger, url, &requests.WorkflowWrapper{
+		Workflow: *workflow,
+	}, true)
 	if err != nil {
 		logger.Error("failed to submit workflow", zap.Error(err))
 		return err
@@ -82,6 +89,9 @@ func submitWorkflow(
 	return nil
 }
 
-func buildWorkflowUrl(namespace string, argoUrl string, sublocation string) string {
-	return fmt.Sprintf("%s/api/v1/workflows/%s/%s", argoUrl, namespace, sublocation)
+func buildWorkflowUrl(namespace string, argoUrl string, more ...string) string {
+	if len(more) == 0 {
+		return fmt.Sprintf("%s/api/v1/workflows/%s", argoUrl, namespace)
+	}
+	return fmt.Sprintf("%s/api/v1/workflows/%s/%s", argoUrl, namespace, strings.Join(more, "/"))
 }

@@ -18,9 +18,9 @@ func TestProcessingStep_AllArgumentsSupplied_ProperlyFormedTask(t *testing.T) {
 		Name:     "count-words-template",
 		Template: "count-words-",
 	}
-	
+
 	expectedName := fmt.Sprintf("count-words-%s-%s", recordId, workflowId)
-	expectedDependencies := fmt.Sprintf("[%s]", previousTask)
+	expectedDependencies := []string{previousTask}
 
 	// Act
 	task := NewProcessingStep(recordId, workflowId, previousTask, templateRef)
@@ -33,11 +33,15 @@ func TestProcessingStep_AllArgumentsSupplied_ProperlyFormedTask(t *testing.T) {
 
 	// Verify parameters is empty
 	assert.Equal(t, 0, len(task.Arguments.Parameters))
-	
+
 	// Verify artifacts
 	assert.Equal(t, 1, len(task.Arguments.Artifacts))
 	assert.Equal(t, "input-files", task.Arguments.Artifacts[0].Name)
-	assert.Equal(t, fmt.Sprintf("{{tasks.%s.outputs.artifacts.output-files}}", previousTask), task.Arguments.Artifacts[0].From)
+	assert.Equal(
+		t,
+		fmt.Sprintf("{{tasks.%s.outputs.artifacts.output-files}}", previousTask),
+		task.Arguments.Artifacts[0].From,
+	)
 }
 
 func TestProcessingStep_AllArgumentsSupplied_ProperlyFormedJson(t *testing.T) {
@@ -49,19 +53,19 @@ func TestProcessingStep_AllArgumentsSupplied_ProperlyFormedJson(t *testing.T) {
 		Name:     "count-words-template",
 		Template: "count-words-",
 	}
-	
+
 	task := NewProcessingStep(recordId, workflowId, previousTask, templateRef)
-	
+
 	// Act
 	taskJson, err := json.Marshal(task)
-	
+
 	// Assert
 	assert.NoError(t, err)
-	
+
 	// Define expected JSON
 	expectedJson := `{
 		"name": "count-words-12345-2",
-		"dependencies": "[read-files-12345-2]",
+		"dependencies": ["read-files-12345-2"],
 		"templateRef": {
 			"name": "count-words-template",
 			"template": "count-words-"
@@ -76,22 +80,22 @@ func TestProcessingStep_AllArgumentsSupplied_ProperlyFormedJson(t *testing.T) {
 			]
 		}
 	}`
-	
+
 	// Normalize both JSON strings for comparison (remove whitespace differences)
 	var expected, actual interface{}
 	err = json.Unmarshal([]byte(expectedJson), &expected)
 	assert.NoError(t, err)
-	
+
 	err = json.Unmarshal(taskJson, &actual)
 	assert.NoError(t, err)
-	
+
 	// Re-marshal both to normalized format
 	expectedNormalized, err := json.Marshal(expected)
 	assert.NoError(t, err)
-	
+
 	actualNormalized, err := json.Marshal(actual)
 	assert.NoError(t, err)
-	
+
 	// Compare the normalized JSON strings
 	assert.Equal(t, string(expectedNormalized), string(actualNormalized))
 }

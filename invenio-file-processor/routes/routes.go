@@ -1,19 +1,28 @@
 package routes
 
 import (
+	"context"
 	"net/http"
 
+	"fi.muni.cz/invenio-file-processor/v2/config"
 	"fi.muni.cz/invenio-file-processor/v2/jsonapi"
+	"fi.muni.cz/invenio-file-processor/v2/routes/integration"
 	"go.uber.org/zap"
 )
 
-func AddRoutes(logger *zap.Logger, mux *http.ServeMux, apiContext string) {
+func AddRoutes(ctx context.Context, logger *zap.Logger, mux *http.ServeMux, config *config.Config) {
 	logger.Info("Adding server routes")
-	mux.Handle(buildPath(apiContext, "/health/readiness"), handleReady())
-}
-
-type ErrorResponse struct {
-	Message string `json:"message"`
+	mux.Handle(buildPathV1(config.ApiContext, "/health/readiness"), handleReady())
+	mux.Handle(
+		buildPathV1(config.ApiContext, "/process-file"),
+		integration.CommitedFileHandler(
+			ctx,
+			logger,
+			config.ArgoApi.Url,
+			config.CompchemApi.Url,
+			config.Workflows,
+		),
+	)
 }
 
 func handleReady() http.Handler {
@@ -33,6 +42,6 @@ func handleReady() http.Handler {
 	})
 }
 
-func buildPath(apiContext string, path string) string {
-	return apiContext + "/api/v1" + path
+func buildPathV1(apiContext string, path string) string {
+	return apiContext + "/v1" + path
 }

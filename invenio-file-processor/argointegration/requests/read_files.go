@@ -9,14 +9,14 @@ func NewReadFilesWorkflow(
 	workflowId string,
 ) *Task {
 	return &Task{
-    Name: fmt.Sprintf(ReadFilesTemplate, recordId, workflowId),
-    Dependencies: "[]",
-    TemplateReference: TemplateReference{
-      Name: "read-files-template",
-      Template: "read-files",
-    },
-    Arguments: ParametersAndArtifacts{
-      Artifacts: []Artifact{},
+		Name:         fmt.Sprintf(ReadFilesTemplate, recordId, workflowId),
+		Dependencies: []string{},
+		TemplateReference: TemplateReference{
+			Name:     "read-files-template",
+			Template: "read-files",
+		},
+		Arguments: ParametersAndArtifacts{
+			Artifacts: []Artifact{},
 			Parameters: []Parameter{
 				{
 					Name:  "base-url",
@@ -26,11 +26,11 @@ func NewReadFilesWorkflow(
 					Name:  "record-id",
 					Value: "{{workflow.parameters.record-id}}",
 				},
-        {
-          Name: "file-ids",
-          Value: "{{workflow.parameters.file-ids}}",
-        },
-      },
-    },    
-  }
+				{
+					Name:  "file-ids",
+					Value: "{{workflow.parameters.file-ids}}",
+				},
+			},
+		},
+	}
 }

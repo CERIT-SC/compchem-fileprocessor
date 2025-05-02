@@ -1,14 +1,15 @@
 server:
   host: localhost
-  port: 8079
+  port: 8062
 
 context-path: "/api"
 
-argo-worfklows:
+argo-workflows:
   url: https://localhost:2746
+  namespace: "argo"
 
 compchem:
-  url: https://localhost:5000
+  url: https://host-service.argo.svc.cluster.local:5000/api/experiments
 
 workflows:
   - name: count-words

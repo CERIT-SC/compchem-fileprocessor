@@ -20,13 +20,13 @@ for FILE_PATH in "$FILES_DIR"/*; do
   FILE_NAME=1-$(basename "$FILE_PATH")
   echo "Uploading file: $FILE_NAME"
 
-  # TODO: temporary curl headers, -k -H
+  # TODO: temporary curl headers, -k -H 
   # TODO: what is the purpose here? do we delete the old file? or keep creating new ones?
   echo "Registering metadata"
   curl -f -k -H "Host: localhost" -X POST "${BASE_URL}/${RECORD_ID}/draft/files" \
     -H "Content-Type: application/json" \
     -d "[{\"key\": \"${FILE_NAME}\"}]" || { echo "Failed to register $FILE_NAME"; exit 1; }
-
+  
   echo "\n"
 
   echo "Uploading content"

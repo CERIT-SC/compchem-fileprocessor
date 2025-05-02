@@ -11,7 +11,7 @@ func NewWriteWorkflow(
 ) *Task {
 	return &Task{
 		Name:         fmt.Sprintf(WriteFilesTemplate, recordId, workflowId),
-		Dependencies: fmt.Sprintf("[%s]", previousTask),
+		Dependencies: []string{previousTask},
 		TemplateReference: TemplateReference{
 			Name:     "write-files-template",
 			Template: "upload-files",

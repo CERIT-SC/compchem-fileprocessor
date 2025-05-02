@@ -1,10 +1,10 @@
 package requests
 
 type Task struct {
-	Name              string            `json:"name"`
-	Dependencies      string          `json:"dependencies"`
-	TemplateReference TemplateReference `json:"templateRef"`
-	Arguments         ParametersAndArtifacts         `json:"arguments"`
+	Name              string                 `json:"name"`
+	Dependencies      []string               `json:"dependencies"`
+	TemplateReference TemplateReference      `json:"templateRef"`
+	Arguments         ParametersAndArtifacts `json:"arguments"`
 }
 
 type Parameter struct {

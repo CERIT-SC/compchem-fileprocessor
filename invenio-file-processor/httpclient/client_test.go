@@ -48,7 +48,7 @@ func TestGetRequest_ServerHasHandler_ReturnsCorrectObject(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	result, err := GetRequest[TestResponse](ctx, logger, server.URL)
+	result, err := GetRequest[TestResponse](ctx, logger, server.URL, false)
 
 	// Assertions
 	assert.NoError(t, err)
@@ -97,7 +97,7 @@ func TestPostRequest_ServerHasHandler_BodyReceivedReturnsCorrectObject(t *testin
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	result, err := PostRequest[TestResponse](ctx, logger, server.URL, reqBody)
+	result, err := PostRequest[TestResponse](ctx, logger, server.URL, reqBody, false)
 
 	// Assertions
 	assert.NoError(t, err)
@@ -126,7 +126,7 @@ func TestPostRequest_ServerDoesNotAcceptRequest_ClientReturnsError(t *testing.T)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	_, err := PostRequest[TestResponse](ctx, logger, server.URL, reqBody)
+	_, err := PostRequest[TestResponse](ctx, logger, server.URL, reqBody, false)
 
 	// Assertions
 	assert.Error(t, err)
@@ -208,7 +208,7 @@ func TestGetRequest_ServerTemporarilyDown_ClientRetriesAndEventuallySucceeds(t *
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	result, err := GetRequest[TestResponse](ctx, logger, server.URL)
+	result, err := GetRequest[TestResponse](ctx, logger, server.URL, false)
 
 	// Assertions
 	assert.NoError(t, err)

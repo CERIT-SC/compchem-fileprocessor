@@ -8,7 +8,7 @@ import (
 )
 
 func TestFindWorkflowConfig_MatchingConfigExists_ConfigFound(t *testing.T) {
-	configs := []*config.WorkflowConfig{
+	configs := []config.WorkflowConfig{
 		{
 			Filetype: "txt",
 		},
@@ -16,11 +16,11 @@ func TestFindWorkflowConfig_MatchingConfigExists_ConfigFound(t *testing.T) {
 
 	conf, err := findWorkflowConfig(configs, "txt")
 	assert.NoError(t, err, "error should be nil because config exists")
-	assert.Equal(t, conf, configs[0], "returned should be the same object as in setup")
+	assert.Equal(t, conf, &configs[0], "returned should be the same object as in setup")
 }
 
 func TestFindWorkflowConfig_NoConfig_ErorrReturned(t *testing.T) {
-	configs := []*config.WorkflowConfig{
+	configs := []config.WorkflowConfig{
 		{
 			Filetype: "png",
 		},

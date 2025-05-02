@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 )
 
@@ -81,6 +83,13 @@ func TestValidateConfig_ConfigOk_ConfigValidationOk(t *testing.T) {
 			Host: "127.0.0.1",
 			Port: 8080,
 		},
+		ArgoApi: ArgoApi{
+			Url:       "https://localhost:2746",
+			Namespace: "test",
+		},
+		CompchemApi: CompchemApi{
+			Url: "https://localhost:5000",
+		},
 	}
 
 	result, errs := validateConfig(logger, cfg)
@@ -101,23 +110,102 @@ func TestValidateConfig_ConfigNotOk_ConfigValidationNotOk(t *testing.T) {
 			Host: "127.0.0.1",
 			Port: 8080,
 		},
-    Workflows: []WorkflowConfig{
-      {
-        Name: "test",
-      },
-    },  
+		Workflows: []WorkflowConfig{
+			{
+				Name: "test",
+			},
+		},
 	}
 
 	result, errs := validateConfig(logger, cfg)
-	if len(errs) != 1 {
-		t.Errorf("Expected 1 validation errors, got: %v", errs)
+	if len(errs) != 4 {
+		t.Errorf("Expected 4 validation errors, got: %v", errs)
 	}
 
 	if result.Server.Host != "127.0.0.1" || result.Server.Port != 8080 {
 		t.Errorf("Unexpected config values after validation: %+v", result)
 	}
 
-  if len(result.Workflows) != 1 {
-    t.Errorf("Expected one workflow defined")
-  }
+	if len(result.Workflows) != 1 {
+		t.Errorf("Expected one workflow defined")
+	}
+}
+
+func TestLoadConfig_ConfigOk_ConfigLoadedCorrectly(t *testing.T) {
+	tmpDir := t.TempDir()
+	mockPath := filepath.Join(tmpDir, "server-config.yaml")
+	content := []byte(`
+server:
+  host: localhost
+  port: 8062
+
+context-path: "/api"
+
+argo-workflows:
+  url: https://localhost:2746
+  namespace: "argo"
+
+compchem:
+  url: https://localhost:5000
+
+workflows:
+  - name: count-words
+    filetype: txt
+    processing-templates:
+      - name: count-words-template
+        template: count-words
+  `)
+
+	err := os.WriteFile(mockPath, content, 0644)
+	if err != nil {
+		t.Fatalf("Failed to write mock config file: %v", err)
+	}
+
+	config, err := LoadConfig(zap.NewNop(), tmpDir)
+	if err != nil {
+		t.Fatalf("Failed to load config: %v", err)
+	}
+
+	// Check Server configuration
+	assert.Equal(t, "localhost", config.Server.Host, "Server host should match")
+	assert.Equal(t, 8062, config.Server.Port, "Server port should match")
+
+	// Check ApiContext
+	assert.Equal(t, "/api", config.ApiContext, "API context path should match")
+
+	// Check ArgoApi
+	assert.Equal(t, "https://localhost:2746", config.ArgoApi.Url, "Argo API URL should match")
+	assert.Equal(t, "argo", config.ArgoApi.Namespace, "Argo namespace should match")
+
+	// Check CompchemApi
+	assert.Equal(
+		t,
+		"https://localhost:5000",
+		config.CompchemApi.Url,
+		"Compchem API URL should match",
+	)
+
+	// Check Workflows
+	assert.Equal(t, 1, len(config.Workflows), "Should have 1 workflow configured")
+	assert.Equal(t, "count-words", config.Workflows[0].Name, "Workflow name should match")
+	assert.Equal(t, "txt", config.Workflows[0].Filetype, "Workflow filetype should match")
+
+	assert.Equal(
+		t,
+		1,
+		len(config.Workflows[0].ProcessingTemplates),
+		"Should have 1 processing template",
+	)
+	assert.Equal(
+		t,
+		"count-words-template",
+		config.Workflows[0].ProcessingTemplates[0].Name,
+		"Processing template name should match",
+	)
+	assert.Equal(
+		t,
+		"count-words",
+		config.Workflows[0].ProcessingTemplates[0].Template,
+		"Processing template value should match",
+	)
 }

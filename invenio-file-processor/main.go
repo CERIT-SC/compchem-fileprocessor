@@ -17,25 +17,39 @@ import (
 )
 
 // credit to: https://grafana.com/blog/2024/02/09/how-i-write-http-services-in-go-after-13-years/
-func NewServer(ctx context.Context, logger *zap.Logger, apiContext string) http.Handler {
+func NewServer(ctx context.Context, logger *zap.Logger, config *config.Config) http.Handler {
 	mux := http.NewServeMux()
 
-	routes.AddRoutes(logger, mux, apiContext)
+	routes.AddRoutes(ctx, logger, mux, config)
 
 	return mux
 }
 
-func run(ctx context.Context, args []string, ready chan<- struct{}) error {
-	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
-	defer cancel()
-	logger, _ := zap.NewProduction()
-	defer logger.Sync()
-	config, err := config.LoadConfig(logger, args[0])
+func getConfig(ctx context.Context, logger *zap.Logger) (*config.Config, error) {
+	wd, err := os.Getwd()
 	if err != nil {
-		return err
+		logger.Error("Could not get workdir", zap.Error(err))
+		return nil, err
 	}
 
-	srv := NewServer(ctx, logger, config.ApiContext)
+	config, err := config.LoadConfig(logger, wd)
+	if err != nil {
+		return nil, err
+	}
+
+	return config, nil
+}
+
+func run(
+	ctx context.Context,
+	logger *zap.Logger,
+	config *config.Config,
+	ready chan<- struct{},
+) error {
+	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
+	defer cancel()
+
+	srv := NewServer(ctx, logger, config)
 	httpServer := &http.Server{
 		Addr:    net.JoinHostPort(config.Server.Host, strconv.Itoa(config.Server.Port)),
 		Handler: srv,
@@ -75,7 +89,15 @@ func main() {
 	ctx := context.Background()
 	ready := make(chan struct{})
 
-	if err := run(ctx, os.Args, ready); err != nil {
+	logger, _ := zap.NewProduction()
+	defer logger.Sync()
+
+	config, err := getConfig(ctx, logger)
+	if err != nil {
+		os.Exit(1)
+	}
+
+	if err := run(ctx, logger, config, ready); err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err)
 		os.Exit(1)
 	}

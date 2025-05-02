@@ -3,6 +3,7 @@ package httpclient
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -74,14 +75,6 @@ func (c *Client) requestRaw(
 
 	var lastError error
 	for attempt := range c.options.MaxRetries {
-		if attempt > 0 && c.options.Logger != nil {
-			c.options.Logger.Info("Retrying request",
-				zap.String("url", url),
-				zap.String("method", method),
-				zap.Int("attempt", attempt),
-				zap.Error(lastError))
-		}
-
 		if attempt > 0 {
 			select {
 			case <-ctx.Done():
@@ -91,9 +84,13 @@ func (c *Client) requestRaw(
 			}
 		}
 
-		c.options.Logger.Info("Retrying request",
-			zap.String("url", url),
-			zap.String("method", method))
+		if attempt > 0 && c.options.Logger != nil {
+			c.options.Logger.Info("Retrying request",
+				zap.String("url", url),
+				zap.String("method", method),
+				zap.Int("attempt", attempt),
+				zap.Error(lastError))
+		}
 
 		response, err := c.httpClient.Do(req)
 		if err != nil {
@@ -121,11 +118,12 @@ func (c *Client) requestRaw(
 			return respBody, nil
 		} else if response.StatusCode < 500 {
 			c.options.Logger.Error("Got 400 response", zap.Int("response-code", response.StatusCode),
-				zap.Any("body", respBody))
+				zap.Any("request-body", body),
+				zap.Any("response-body", string(respBody)))
 			return nil, fmt.Errorf("Got 400 response")
 		} else {
 			c.options.Logger.Error("Got 500 response will retry.", zap.Int("response-code", response.StatusCode),
-				zap.Any("body", respBody))
+				zap.Any("body", string(respBody)))
 		}
 	}
 
@@ -148,10 +146,25 @@ func request[T any](
 	url string,
 	body any,
 	options *Opts,
+	ignoreTls bool,
 ) (T, error) {
-	client := Client{
-		options:    options,
-		httpClient: http.DefaultClient,
+	var client *Client
+	if ignoreTls {
+		client = &Client{
+			httpClient: &http.Client{
+				Transport: &http.Transport{
+					TLSClientConfig: &tls.Config{
+						InsecureSkipVerify: true,
+					},
+				},
+			},
+			options: options,
+		}
+	} else {
+		client = &Client{
+			httpClient: http.DefaultClient,
+			options:    options,
+		}
 	}
 
 	var result T
@@ -169,8 +182,13 @@ func request[T any](
 	return result, nil
 }
 
-func GetRequest[T any](ctx context.Context, logger *zap.Logger, url string) (T, error) {
-	return request[T](ctx, http.MethodGet, url, nil, NewDefaultOpts(logger))
+func GetRequest[T any](
+	ctx context.Context,
+	logger *zap.Logger,
+	url string,
+	ignoreTls bool,
+) (T, error) {
+	return request[T](ctx, http.MethodGet, url, nil, NewDefaultOpts(logger), ignoreTls)
 }
 
 func PostRequest[T any](
@@ -178,6 +196,7 @@ func PostRequest[T any](
 	logger *zap.Logger,
 	url string,
 	body any,
+	ignoreTls bool,
 ) (T, error) {
-	return request[T](ctx, http.MethodPost, url, body, NewDefaultOpts(logger))
+	return request[T](ctx, http.MethodPost, url, body, NewDefaultOpts(logger), ignoreTls)
 }

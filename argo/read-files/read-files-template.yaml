@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
 metadata:
-  name: download-files-template
+  name: read-files-template
 spec:
   entrypoint: download-files
   arguments:
@@ -10,19 +10,19 @@ spec:
     - name: record-id
     - name: file-ids
   templates:
-  - name: download-files
+  - name: read-files
     inputs:
       parameters:
       - name: base-url
       - name: record-id
       - name: file-ids
     container:
-      image: xkollar173/argo-read-files:0.0.4 
+      image: xkollar173/argo-read-files:0.0.4
       command: [sh, "-c"]
       args:
         - |
-          ./read-files.sh "{{inputs.parameters.base-url}}" "{{inputs.parameters.record-id}}" "{{inputs.parameters.file-ids}}" 
+          ./read-files.sh "{{inputs.parameters.base-url}}" "{{inputs.parameters.record-id}}" "{{inputs.parameters.file-ids}}"
     outputs:
       artifacts:
       - name: output-files
-        path: /output 
+        path: /output

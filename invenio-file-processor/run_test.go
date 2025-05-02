@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"os"
-	"path/filepath"
 	"strconv"
 	"testing"
 	"time"
+
+	"fi.muni.cz/invenio-file-processor/v2/config"
+	"go.uber.org/zap"
 )
 
 // credit to: https://gist.github.com/sevkin/96bdae9274465b2d09191384f86ef39d
@@ -33,28 +34,17 @@ func TestRunHttpServer_ServerFullyConfigured_ReadyCheckReturnsOk(t *testing.T) {
 		t.Fatalf("not able to get a random port")
 	}
 
-	const configContent = `
-  server:
-    port: %s
-    host: localhost
-  `
-
-	tmpDir := t.TempDir()
-	mockPath := filepath.Join(tmpDir, "server-config.yaml")
-	fmt.Print(mockPath + "\n")
-	var buf []byte
-	buf = fmt.Appendf(buf, configContent, strconv.Itoa(port))
-	content := buf
-
-	err = os.WriteFile(mockPath, content, 0644)
-	if err != nil {
-		t.Fatalf("Failed to write mock config file: %v", err)
+	ready := make(chan struct{})
+	config := config.Config{
+		Server: config.Server{
+			Port: port,
+			Host: "localhost",
+		},
+		ApiContext: "/api",
 	}
 
-	ready := make(chan struct{})
-
 	go func() {
-		if err := run(ctx, []string{tmpDir}, ready); err != nil {
+		if err := run(ctx, zap.NewNop(), &config, ready); err != nil {
 			t.Errorf("server failed to start: %v", err)
 		}
 	}()

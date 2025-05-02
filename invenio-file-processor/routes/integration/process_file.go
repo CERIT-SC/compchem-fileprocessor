@@ -9,9 +9,12 @@ import (
 	"fi.muni.cz/invenio-file-processor/v2/argointegration"
 	"fi.muni.cz/invenio-file-processor/v2/config"
 	"fi.muni.cz/invenio-file-processor/v2/jsonapi"
-	"fi.muni.cz/invenio-file-processor/v2/routes"
 	"go.uber.org/zap"
 )
+
+type ErrorResponse struct {
+	Message string `json:"message"`
+}
 
 type requestBody struct {
 	RecordId string `json:"recordId"`
@@ -24,7 +27,7 @@ func CommitedFileHandler(
 	logger *zap.Logger,
 	argoUrl string,
 	baseUrl string,
-	configs []*config.WorkflowConfig,
+	configs []config.WorkflowConfig,
 ) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
@@ -49,7 +52,7 @@ func CommitedFileHandler(
 		)
 		if err != nil {
 			logger.Error("Failed to submit file for processing", zap.Error(err))
-			jsonapi.Encode(w, r, http.StatusInternalServerError, routes.ErrorResponse{
+			jsonapi.Encode(w, r, http.StatusInternalServerError, ErrorResponse{
 				Message: "Failed to submit workflow to argo",
 			})
 			return
@@ -67,14 +70,14 @@ func CommitedFileHandler(
 func getRequestBody(w http.ResponseWriter, r *http.Request) (*requestBody, error) {
 	reqBody, err := jsonapi.Decode[requestBody](r)
 	if err != nil {
-		jsonapi.Encode(w, r, 400, routes.ErrorResponse{
+		jsonapi.Encode(w, r, 400, ErrorResponse{
 			Message: "Failed to decode request for processing",
 		})
 		return nil, fmt.Errorf("Decode error")
 	}
 
 	if err := validateBody(reqBody); err != nil {
-		jsonapi.Encode(w, r, 400, routes.ErrorResponse{
+		jsonapi.Encode(w, r, 400, ErrorResponse{
 			Message: "Invalid request body, missing: " + err.Error(),
 		})
 		return nil, fmt.Errorf("Validate erorr: %v", err)
