@@ -26,3 +26,5 @@ go.work.sum
 
 # null-ls files
 .null-ls*
+
+scratch/*

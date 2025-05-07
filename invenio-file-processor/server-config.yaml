@@ -13,7 +13,7 @@ compchem:
 
 workflows:
   - name: count-words
-    filetype: txt
+    filetype: text/plain
     processing-templates:
       - name: count-words-template
         template: count-words
