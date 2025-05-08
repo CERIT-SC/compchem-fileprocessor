@@ -3,7 +3,7 @@ kind: WorkflowTemplate
 metadata:
   name: read-files-template
 spec:
-  entrypoint: download-files
+  entrypoint: read-files
   arguments:
     parameters:
     - name: base-url
