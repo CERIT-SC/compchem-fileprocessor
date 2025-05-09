@@ -1,4 +1,4 @@
-package argointegration
+package service
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"fi.muni.cz/invenio-file-processor/v2/argointegration/requests"
+	"fi.muni.cz/invenio-file-processor/v2/api/argodtos"
 	"fi.muni.cz/invenio-file-processor/v2/config"
 	"fi.muni.cz/invenio-file-processor/v2/httpclient"
 	"github.com/google/uuid"
@@ -29,7 +29,7 @@ func ProcessCommittedFile(
 		return err
 	}
 
-	workflow := requests.BuildWorkflow(
+	workflow := argodtos.BuildWorkflow(
 		*conf,
 		baseUrl,
 		conf.Name,
@@ -70,7 +70,7 @@ func submitWorkflow(
 	ctx context.Context,
 	logger *zap.Logger,
 	argoUrl string,
-	workflow *requests.Workflow,
+	workflow *argodtos.Workflow,
 ) error {
 	url := buildWorkflowUrl("argo", argoUrl)
 	logger.Info(
@@ -79,7 +79,7 @@ func submitWorkflow(
 		zap.String("url", url),
 	)
 
-	_, err := httpclient.PostRequest[any](ctx, logger, url, &requests.WorkflowWrapper{
+	_, err := httpclient.PostRequest[any](ctx, logger, url, &argodtos.WorkflowWrapper{
 		Workflow: *workflow,
 	}, true)
 	if err != nil {

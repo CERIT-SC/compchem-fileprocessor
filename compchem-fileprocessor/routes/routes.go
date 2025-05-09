@@ -6,22 +6,36 @@ import (
 
 	"fi.muni.cz/invenio-file-processor/v2/config"
 	"fi.muni.cz/invenio-file-processor/v2/jsonapi"
-	"fi.muni.cz/invenio-file-processor/v2/routes/integration"
+	"fi.muni.cz/invenio-file-processor/v2/routes/workflow/process"
+	"github.com/rs/cors"
 	"go.uber.org/zap"
 )
 
 func AddRoutes(ctx context.Context, logger *zap.Logger, mux *http.ServeMux, config *config.Config) {
 	logger.Info("Adding server routes")
-	mux.Handle(buildPathV1(config.ApiContext, "/health/readiness"), handleReady())
+
+	middleware := func(h http.Handler) http.Handler {
+		h = cors.Default().Handler(h)
+		h = loggingMiddleware(logger)(h)
+
+		// TBD auth?
+
+		return h
+	}
+
 	mux.Handle(
-		buildPathV1(config.ApiContext, "/process-file"),
-		integration.CommitedFileHandler(
+		buildPathV1("GET", config.ApiContext, "/health/readiness"),
+		middleware(handleReady()),
+	)
+	mux.Handle(
+		buildPathV1("POST", config.ApiContext, "/workflows"),
+		middleware(process.CommitedFileHandler(
 			ctx,
 			logger,
 			config.ArgoApi.Url,
 			config.CompchemApi.Url,
 			config.Workflows,
-		),
+		)),
 	)
 }
 
@@ -42,6 +56,6 @@ func handleReady() http.Handler {
 	})
 }
 
-func buildPathV1(apiContext string, path string) string {
-	return apiContext + "/v1" + path
+func buildPathV1(requestType string, apiContext string, path string) string {
+	return requestType + " " + apiContext + "/v1" + path
 }

@@ -1,4 +1,4 @@
-package requests
+package argodtos
 
 type Task struct {
 	Name              string                 `json:"name"`

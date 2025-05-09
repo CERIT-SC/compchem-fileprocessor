@@ -1,4 +1,4 @@
-package integration
+package process
 
 import (
 	"context"
@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"strings"
 
-	"fi.muni.cz/invenio-file-processor/v2/argointegration"
 	"fi.muni.cz/invenio-file-processor/v2/config"
 	"fi.muni.cz/invenio-file-processor/v2/jsonapi"
 	"fi.muni.cz/invenio-file-processor/v2/routes/common"
+	"fi.muni.cz/invenio-file-processor/v2/service"
 	"go.uber.org/zap"
 )
 
@@ -33,13 +33,13 @@ func CommitedFileHandler(
 			return
 		}
 
-		reqBody, err := common.GetRequestBody[requestBody](w, r, validateBody)
+		reqBody, err := common.GetValidRequestBody(w, r, validateBody)
 		if err != nil {
 			logger.Error("Requst body invalid", zap.Error(err))
 			return
 		}
 
-		err = argointegration.ProcessCommittedFile(
+		err = service.ProcessCommittedFile(
 			ctx,
 			logger,
 			argoUrl,

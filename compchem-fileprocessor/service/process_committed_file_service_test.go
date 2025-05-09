@@ -1,4 +1,4 @@
-package argointegration
+package service
 
 import (
 	"testing"
