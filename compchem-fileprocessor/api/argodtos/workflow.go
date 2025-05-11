@@ -112,19 +112,16 @@ func constructLinearDag(
 
 	readStep := NewReadFilesWorkflow(recordId, workflowId)
 	result = append(result, readStep)
-	lastStepName := readStep.Name
 
+	// each processing task executed after write task with its own write task
 	for _, cfg := range conf {
-		task := NewProcessingStep(recordId, workflowId, lastStepName, &TemplateReference{
+		task := NewProcessingStep(recordId, workflowId, readStep.Name, &TemplateReference{
 			Name:     cfg.Name,
 			Template: cfg.Template,
 		})
-		result = append(result, task)
-		lastStepName = task.Name
+		writeTask := NewWriteWorkflow(recordId, workflowId, task.Name, cfg.Template)
+		result = append(result, task, writeTask)
 	}
-
-	writeStep := NewWriteWorkflow(recordId, workflowId, lastStepName)
-	result = append(result, writeStep)
 
 	return result
 }

@@ -2,19 +2,25 @@ package argodtos
 
 import "fmt"
 
-const WriteFilesTemplate = "write-files-%s-%s"
+const WriteFilesTemplate = "write-files-%s-%s-%s"
 
 func NewWriteWorkflow(
 	recordId string,
 	workflowId string,
-	previousTask string,
+	previousTaskFullName string,
+	previousTaskTemplateName string,
 ) *Task {
 	return &Task{
-		Name:         fmt.Sprintf(WriteFilesTemplate, recordId, workflowId),
-		Dependencies: []string{previousTask},
+		Name: fmt.Sprintf(
+			WriteFilesTemplate,
+			previousTaskTemplateName,
+			recordId,
+			workflowId,
+		),
+		Dependencies: []string{previousTaskFullName},
 		TemplateReference: TemplateReference{
 			Name:     "write-files-template",
-			Template: "upload-files",
+			Template: "write-files",
 		},
 		Arguments: ParametersAndArtifacts{
 			Parameters: []Parameter{
@@ -31,7 +37,7 @@ func NewWriteWorkflow(
 				{
 					Name: "input-files",
 					From: fmt.Sprintf(
-						"{{tasks.%s.outputs.artifacts.output-files}}", previousTask,
+						"{{tasks.%s.outputs.artifacts.output-files}}", previousTaskFullName,
 					),
 				},
 			},

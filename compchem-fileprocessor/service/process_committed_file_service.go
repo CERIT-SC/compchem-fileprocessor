@@ -33,7 +33,7 @@ func ProcessCommittedFile(
 		*conf,
 		baseUrl,
 		conf.Name,
-		uuid.New().String(),
+		uuid.New().String(), // TODO: replace with sequential numbering
 		recordId,
 		[]string{fileName},
 	)

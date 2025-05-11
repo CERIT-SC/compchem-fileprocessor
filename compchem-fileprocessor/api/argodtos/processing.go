@@ -11,7 +11,7 @@ func NewProcessingStep(
 	template := templateRef.Template
 
 	return &Task{
-		Name:              fmt.Sprintf(template+"%s-%s", recordId, workflowId),
+		Name:              fmt.Sprintf(template+"-%s-%s", recordId, workflowId),
 		Dependencies:      []string{previousTask},
 		TemplateReference: *templateRef,
 		Arguments: ParametersAndArtifacts{

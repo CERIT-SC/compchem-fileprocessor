@@ -16,7 +16,7 @@ func TestProcessingStep_AllArgumentsSupplied_ProperlyFormedTask(t *testing.T) {
 	previousTask := "read-files-12345-2"
 	templateRef := &TemplateReference{
 		Name:     "count-words-template",
-		Template: "count-words-",
+		Template: "count-words",
 	}
 
 	expectedName := fmt.Sprintf("count-words-%s-%s", recordId, workflowId)
@@ -51,7 +51,7 @@ func TestProcessingStep_AllArgumentsSupplied_ProperlyFormedJson(t *testing.T) {
 	previousTask := "read-files-12345-2"
 	templateRef := &TemplateReference{
 		Name:     "count-words-template",
-		Template: "count-words-",
+		Template: "count-words",
 	}
 
 	task := NewProcessingStep(recordId, workflowId, previousTask, templateRef)
@@ -68,7 +68,7 @@ func TestProcessingStep_AllArgumentsSupplied_ProperlyFormedJson(t *testing.T) {
 		"dependencies": ["read-files-12345-2"],
 		"templateRef": {
 			"name": "count-words-template",
-			"template": "count-words-"
+			"template": "count-words"
 		},
 		"arguments": {
 			"parameters": [],
@@ -82,7 +82,7 @@ func TestProcessingStep_AllArgumentsSupplied_ProperlyFormedJson(t *testing.T) {
 	}`
 
 	// Normalize both JSON strings for comparison (remove whitespace differences)
-	var expected, actual interface{}
+	var expected, actual any
 	err = json.Unmarshal([]byte(expectedJson), &expected)
 	assert.NoError(t, err)
 
