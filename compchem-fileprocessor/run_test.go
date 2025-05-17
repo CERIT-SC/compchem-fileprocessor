@@ -5,11 +5,16 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
 	"testing"
 	"time"
 
 	"fi.muni.cz/invenio-file-processor/v2/config"
+	"github.com/stretchr/testify/assert"
+	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/wait"
 	"go.uber.org/zap"
 )
 
@@ -34,14 +39,67 @@ func TestRunHttpServer_ServerFullyConfigured_ReadyCheckReturnsOk(t *testing.T) {
 		t.Fatalf("not able to get a random port")
 	}
 
-	ready := make(chan struct{})
+	migrationsDir, err := os.MkdirTemp("", "migrations")
+	assert.NoError(t, err)
+	defer os.RemoveAll(migrationsDir)
+
+	// TBD: replace with actual migrations here
+	migrationContent := `CREATE TABLE test_table (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL
+);`
+	err = os.WriteFile(
+		filepath.Join(migrationsDir, "001_create_test_table.up.sql"),
+		[]byte(migrationContent),
+		0644,
+	)
+	assert.NoError(t, err)
+
+	req := testcontainers.ContainerRequest{
+		Image:        "postgres:17",
+		ExposedPorts: []string{"5432/tcp"},
+		WaitingFor: wait.ForLog("database system is ready to accept connections").
+			WithOccurrence(2),
+		Env: map[string]string{
+			"POSTGRES_USER":     "test",
+			"POSTGRES_PASSWORD": "test123",
+			"POSTGRES_DB":       "test",
+		},
+	}
+
+	pg, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
+		ContainerRequest: req,
+		Started:          true,
+	})
+	assert.NoError(t, err)
+	defer func() {
+		if err := pg.Terminate(ctx); err != nil {
+			t.Fatalf("failed to terminate container: %s", err)
+		}
+	}()
+
+	pgPort, err := pg.MappedPort(ctx, "5432")
+	assert.NoError(t, err)
+
 	config := config.Config{
 		Server: config.Server{
 			Port: port,
 			Host: "localhost",
 		},
 		ApiContext: "/api",
+		Postgres: config.Postgres{
+			Host:     "localhost",
+			Port:     pgPort.Port(),
+			Database: "test",
+			Auth: config.Auth{
+				Username: "test",
+				Password: "test123",
+			},
+		},
+		Migrations: fmt.Sprintf("file://%s", migrationsDir),
 	}
+
+	ready := make(chan struct{})
 
 	go func() {
 		if err := run(ctx, zap.NewNop(), &config, ready); err != nil {
@@ -63,7 +121,7 @@ func TestRunHttpServer_ServerFullyConfigured_ReadyCheckReturnsOk(t *testing.T) {
 		if resp.StatusCode != http.StatusOK {
 			t.Fatalf("expected ok status got: %v", resp.Status)
 		}
-	case <-time.After(3 * time.Second):
+	case <-time.After(5 * time.Second):
 		t.Fatal("server did not start in time")
 	}
 }

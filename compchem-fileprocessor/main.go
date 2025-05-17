@@ -12,12 +12,19 @@ import (
 	"time"
 
 	"fi.muni.cz/invenio-file-processor/v2/config"
+	"fi.muni.cz/invenio-file-processor/v2/db"
 	"fi.muni.cz/invenio-file-processor/v2/routes"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
 )
 
 // credit to: https://grafana.com/blog/2024/02/09/how-i-write-http-services-in-go-after-13-years/
-func NewServer(ctx context.Context, logger *zap.Logger, config *config.Config) http.Handler {
+func NewServer(
+	ctx context.Context,
+	logger *zap.Logger,
+	pool *pgxpool.Pool,
+	config *config.Config,
+) http.Handler {
 	mux := http.NewServeMux()
 
 	routes.AddRoutes(ctx, logger, mux, config)
@@ -25,7 +32,7 @@ func NewServer(ctx context.Context, logger *zap.Logger, config *config.Config) h
 	return mux
 }
 
-func getConfig(ctx context.Context, logger *zap.Logger) (*config.Config, error) {
+func getConfig(logger *zap.Logger) (*config.Config, error) {
 	wd, err := os.Getwd()
 	if err != nil {
 		logger.Error("Could not get workdir", zap.Error(err))
@@ -49,7 +56,13 @@ func run(
 	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
 	defer cancel()
 
-	srv := NewServer(ctx, logger, config)
+	pool, err := db.CreatePgPool(ctx, logger, &config.Postgres, config.Migrations)
+	if err != nil {
+		logger.Error("Error initializing db connection pool")
+		return err
+	}
+
+	srv := NewServer(ctx, logger, pool, config)
 	httpServer := &http.Server{
 		Addr:    net.JoinHostPort(config.Server.Host, strconv.Itoa(config.Server.Port)),
 		Handler: srv,
@@ -92,7 +105,7 @@ func main() {
 	logger, _ := zap.NewProduction()
 	defer logger.Sync()
 
-	config, err := getConfig(ctx, logger)
+	config, err := getConfig(logger)
 	if err != nil {
 		os.Exit(1)
 	}

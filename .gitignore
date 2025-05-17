@@ -28,3 +28,5 @@ go.work.sum
 .null-ls*
 
 scratch/*
+
+__debug*

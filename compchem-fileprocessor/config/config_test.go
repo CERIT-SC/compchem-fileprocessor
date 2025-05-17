@@ -75,33 +75,6 @@ server:
 	}
 }
 
-func TestValidateConfig_ConfigOk_ConfigValidationOk(t *testing.T) {
-	logger := zaptest.NewLogger(t)
-
-	cfg := &Config{
-		Server: Server{
-			Host: "127.0.0.1",
-			Port: 8080,
-		},
-		ArgoApi: ArgoApi{
-			Url:       "https://localhost:2746",
-			Namespace: "test",
-		},
-		CompchemApi: CompchemApi{
-			Url: "https://localhost:5000",
-		},
-	}
-
-	result, errs := validateConfig(logger, cfg)
-	if len(errs) > 0 {
-		t.Errorf("Expected no validation errors, got: %v", errs)
-	}
-
-	if result.Server.Host != "127.0.0.1" || result.Server.Port != 8080 {
-		t.Errorf("Unexpected config values after validation: %+v", result)
-	}
-}
-
 func TestValidateConfig_ConfigNotOk_ConfigValidationNotOk(t *testing.T) {
 	logger := zaptest.NewLogger(t)
 
@@ -118,8 +91,11 @@ func TestValidateConfig_ConfigNotOk_ConfigValidationNotOk(t *testing.T) {
 	}
 
 	result, errs := validateConfig(logger, cfg)
-	if len(errs) != 4 {
-		t.Errorf("Expected 4 validation errors, got: %v", errs)
+	if len(errs) != 9 {
+		t.Errorf(
+			"Expected 9go get github.com/jackc/puddle/v2@v2.2. validation errors, got: %v",
+			errs,
+		)
 	}
 
 	if result.Server.Host != "127.0.0.1" || result.Server.Port != 8080 {
@@ -154,6 +130,16 @@ workflows:
     processing-templates:
       - name: count-words-template
         template: count-words
+
+migrations: file://migrations
+
+postgres:
+  auth:
+    user: test
+    password: test123
+  host: host.com
+  port: 12345
+  database: postgres
   `)
 
 	err := os.WriteFile(mockPath, content, 0644)

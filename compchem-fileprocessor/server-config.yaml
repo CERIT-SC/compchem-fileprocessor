@@ -11,6 +11,16 @@ argo-workflows:
 compchem:
   url: https://host-service.argo.svc.cluster.local:5000/api/experiments
 
+migrations: "file://migrations"
+
+postgres:
+  host: localhost
+  port: 5432
+  database: fileprocessor
+  auth:
+    username: compchem-fileprocessor
+    password: compchem123
+
 workflows:
   - name: count-words
     filetype: text/plain

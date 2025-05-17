@@ -16,6 +16,20 @@ type Config struct {
 	CompchemApi CompchemApi      `yaml:"compchem"`
 	ArgoApi     ArgoApi          `yaml:"argo-workflows"`
 	Workflows   []WorkflowConfig `yaml:"workflows"`
+	Postgres    Postgres         `yaml:"postgres"`
+	Migrations  string           `yaml:"migrations"`
+}
+
+type Postgres struct {
+	Database string `yaml:"database"`
+	Host     string `yaml:"host"`
+	Port     string `yaml:"port"`
+	Auth     Auth   `yaml:"auth"`
+}
+
+type Auth struct {
+	Username string `yaml:"user"`
+	Password string `yaml:"password"`
 }
 
 type Server struct {
@@ -134,7 +148,27 @@ func validateConfig(logger *zap.Logger, cfg *Config) (*Config, map[string]string
 		validateWorkflows(cfg.Workflows, errors)
 	}
 
+	validatePostgresParams(cfg.Postgres, errors)
+
 	return cfg, errors
+}
+
+func validatePostgresParams(postgres Postgres, errors map[string]string) {
+	if postgres.Database == "" {
+		errors["database"] = "missing database"
+	}
+	if postgres.Host == "" {
+		errors["postgres-host"] = "missing host"
+	}
+	if postgres.Port == "" {
+		errors["postgres-port"] = "missing port"
+	}
+	if postgres.Auth.Password == "" {
+		errors["postgres-pass"] = "missing auth"
+	}
+	if postgres.Auth.Username == "" {
+		errors["postgres-user"] = "missing auth"
+	}
 }
 
 func validateWorkflows(workflows []WorkflowConfig, errors map[string]string) {
