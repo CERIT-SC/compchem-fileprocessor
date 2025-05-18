@@ -10,7 +10,7 @@ Description:
 
 - After this increment is completed the users file from deposition form will be automatically processed by workflows mapped to their specific files.
 - The user is able to trigger workflows manually
-- The deployer is able to configure what file types are processed by what workflow.
+- The deployer is able to configure what file types are processed by what workflow.compchem_workflow
 
 Tasks:
 

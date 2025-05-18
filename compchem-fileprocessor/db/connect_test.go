@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"fi.muni.cz/invenio-file-processor/v2/config"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
@@ -15,9 +16,8 @@ import (
 	"go.uber.org/zap"
 )
 
-func TestConnect_DbNotExistent_ErrorReturned(t *testing.T) {
-	ctx := context.Background()
-	pool, err := CreatePgPool(ctx, zap.NewNop(), &config.Postgres{
+func TestConnect_MigrationsNotPresent_ErrorReturned(t *testing.T) {
+	err := doMigration(zap.NewNop(), &config.Postgres{
 		Database: "test",
 		Host:     "localhost",
 		Port:     "5432",
@@ -28,12 +28,9 @@ func TestConnect_DbNotExistent_ErrorReturned(t *testing.T) {
 	}, "file://migrations")
 
 	assert.Error(t, err)
-	assert.Nil(t, pool)
 }
 
-func TestConnect_DbExists_ConnectedAndMigrated(t *testing.T) {
-	ctx := context.Background()
-
+func TestConnect_DbMissing_ErrorInMigrations(t *testing.T) {
 	migrationsDir, err := os.MkdirTemp("", "migrations")
 	require.NoError(t, err)
 	defer os.RemoveAll(migrationsDir)
@@ -48,6 +45,22 @@ func TestConnect_DbExists_ConnectedAndMigrated(t *testing.T) {
 		0644,
 	)
 	require.NoError(t, err)
+
+	err = doMigration(zap.NewNop(), &config.Postgres{
+		Database: "test",
+		Host:     "localhost",
+		Port:     "10919",
+		Auth: config.Auth{
+			Password: "test123",
+			Username: "test",
+		},
+	}, fmt.Sprintf("file://%s", migrationsDir))
+
+	assert.Error(t, err)
+}
+
+func TestConnect_DbExists_ConnectedAndMigratedToCorrectSchema(t *testing.T) {
+	ctx := context.Background()
 
 	req := testcontainers.ContainerRequest{
 		Image:        "postgres:17",
@@ -82,19 +95,25 @@ func TestConnect_DbExists_ConnectedAndMigrated(t *testing.T) {
 			Password: "test123",
 			Username: "test",
 		},
-	}, fmt.Sprintf("file://%s", migrationsDir))
+	}, fmt.Sprintf("file://../migrations"))
 
 	defer pool.Close()
 
 	assert.NoError(t, err)
 	assert.NotNil(t, pool)
 
+	assertTableExists(ctx, t, pool, "compchem_file")
+	assertTableExists(ctx, t, pool, "compchem_workflow")
+	assertTableExists(ctx, t, pool, "compchem_workflow_file")
+}
+
+func assertTableExists(ctx context.Context, t *testing.T, pool *pgxpool.Pool, table string) {
 	var tableExists bool
-	err = pool.QueryRow(ctx, `
+	err := pool.QueryRow(ctx, `
 		SELECT EXISTS (
 			SELECT FROM information_schema.tables
 			WHERE table_schema = 'public'
-			AND table_name = 'test_table'
+			AND table_name = 'compchem_file'
 		)
 	`).Scan(&tableExists)
 

@@ -61,6 +61,7 @@ func run(
 		logger.Error("Error initializing db connection pool")
 		return err
 	}
+	defer pool.Close()
 
 	srv := NewServer(ctx, logger, pool, config)
 	httpServer := &http.Server{

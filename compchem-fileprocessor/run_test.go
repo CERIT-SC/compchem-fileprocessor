@@ -6,7 +6,6 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strconv"
 	"testing"
 	"time"
@@ -38,23 +37,6 @@ func TestRunHttpServer_ServerFullyConfigured_ReadyCheckReturnsOk(t *testing.T) {
 	if err != nil {
 		t.Fatalf("not able to get a random port")
 	}
-
-	migrationsDir, err := os.MkdirTemp("", "migrations")
-	assert.NoError(t, err)
-	defer os.RemoveAll(migrationsDir)
-
-	// TBD: replace with actual migrations here
-	migrationContent := `CREATE TABLE test_table (
-    id SERIAL PRIMARY KEY,
-    name TEXT NOT NULL
-);`
-	err = os.WriteFile(
-		filepath.Join(migrationsDir, "001_create_test_table.up.sql"),
-		[]byte(migrationContent),
-		0644,
-	)
-	assert.NoError(t, err)
-
 	req := testcontainers.ContainerRequest{
 		Image:        "postgres:17",
 		ExposedPorts: []string{"5432/tcp"},
@@ -80,6 +62,8 @@ func TestRunHttpServer_ServerFullyConfigured_ReadyCheckReturnsOk(t *testing.T) {
 
 	pgPort, err := pg.MappedPort(ctx, "5432")
 	assert.NoError(t, err)
+	wd, err := os.Getwd()
+	assert.NoError(t, err)
 
 	config := config.Config{
 		Server: config.Server{
@@ -96,7 +80,7 @@ func TestRunHttpServer_ServerFullyConfigured_ReadyCheckReturnsOk(t *testing.T) {
 				Password: "test123",
 			},
 		},
-		Migrations: fmt.Sprintf("file://%s", migrationsDir),
+		Migrations: fmt.Sprintf("file://%s/migrations", wd),
 	}
 
 	ready := make(chan struct{})
