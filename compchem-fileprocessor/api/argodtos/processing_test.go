@@ -12,14 +12,14 @@ import (
 func TestProcessingStep_AllArgumentsSupplied_ProperlyFormedTask(t *testing.T) {
 	// Arrange
 	recordId := "12345"
-	workflowId := "2"
+	workflowId := uint64(2)
 	previousTask := "read-files-12345-2"
 	templateRef := &TemplateReference{
 		Name:     "count-words-template",
 		Template: "count-words",
 	}
 
-	expectedName := fmt.Sprintf("count-words-%s-%s", recordId, workflowId)
+	expectedName := fmt.Sprintf("count-words-%s-%d", recordId, workflowId)
 	expectedDependencies := []string{previousTask}
 
 	// Act
@@ -47,7 +47,7 @@ func TestProcessingStep_AllArgumentsSupplied_ProperlyFormedTask(t *testing.T) {
 func TestProcessingStep_AllArgumentsSupplied_ProperlyFormedJson(t *testing.T) {
 	// Arrange
 	recordId := "12345"
-	workflowId := "2"
+	workflowId := uint64(2)
 	previousTask := "read-files-12345-2"
 	templateRef := &TemplateReference{
 		Name:     "count-words-template",

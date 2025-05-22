@@ -2,11 +2,11 @@ package argodtos
 
 import "fmt"
 
-const ReadFilesTemplate = "read-files-%s-%s"
+const ReadFilesTemplate = "read-files-%s-%d"
 
 func NewReadFilesWorkflow(
 	recordId string,
-	workflowId string,
+	workflowId uint64,
 ) *Task {
 	return &Task{
 		Name:         fmt.Sprintf(ReadFilesTemplate, recordId, workflowId),

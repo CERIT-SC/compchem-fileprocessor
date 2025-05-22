@@ -13,7 +13,7 @@ func TestValidateBody_MissingBody_ReturnsError(t *testing.T) {
 	reader := strings.NewReader(`
   {
     "fileName": "test",
-    "fileType": "test"
+    "mimetype": "test"
   }
   `)
 
@@ -29,7 +29,7 @@ func TestValidateBody_MissingBody_ReturnsError(t *testing.T) {
 func TestValidateBody_OkBody_ReturnsCorrectBody(t *testing.T) {
 	expected := requestBody{
 		FileName: "test",
-		FileType: "test",
+		Mimetype: "test",
 		RecordId: "ejw6-7fpy",
 	}
 
@@ -37,7 +37,7 @@ func TestValidateBody_OkBody_ReturnsCorrectBody(t *testing.T) {
   {
     "fileName": "test",
     "recordId": "ejw6-7fpy",
-    "fileType": "test"
+    "mimetype": "test"
   }
   `)
 

@@ -26,6 +26,11 @@ CREATE TABLE compchem_workflow_file(
   CONSTRAINT compchem_workflow_id_fk FOREIGN KEY(compchem_workflow_id) REFERENCES compchem_workflow(id)
 );
 
+CREATE TABLE compchem_workflow_outbox(
+  workflow_id BIGINT PRIMARY KEY,
+  workflow_message JSONB NOT NULL
+);
+
 CREATE INDEX compchem_file_record_idx ON compchem_file(file_key, record_id);
 CREATE INDEX compchem_workflow_record_idx ON compchem_workflow(record_id, workflow_name); -- add sequential number?
 CREATE INDEX compchem_workflow_file_idx ON compchem_workflow_file(compchem_file_id);

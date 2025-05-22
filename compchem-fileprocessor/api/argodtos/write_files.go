@@ -2,11 +2,11 @@ package argodtos
 
 import "fmt"
 
-const WriteFilesTemplate = "write-files-%s-%s-%s"
+const WriteFilesTemplate = "write-files-%s-%s-%d"
 
 func NewWriteWorkflow(
 	recordId string,
-	workflowId string,
+	workflowId uint64,
 	previousTaskFullName string,
 	previousTaskTemplateName string,
 ) *Task {

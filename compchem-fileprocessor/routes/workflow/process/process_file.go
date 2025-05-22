@@ -10,18 +10,20 @@ import (
 	"fi.muni.cz/invenio-file-processor/v2/jsonapi"
 	"fi.muni.cz/invenio-file-processor/v2/routes/common"
 	"fi.muni.cz/invenio-file-processor/v2/service"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
 )
 
 type requestBody struct {
 	RecordId string `json:"recordId"`
 	FileName string `json:"fileName"`
-	FileType string `json:"fileType"` // TODO: invenio knows this and has a field for this, but doesn't save it
+	Mimetype string `json:"mimetype"`
 }
 
 func CommitedFileHandler(
 	ctx context.Context,
 	logger *zap.Logger,
+	pool *pgxpool.Pool,
 	argoUrl string,
 	baseUrl string,
 	configs []config.WorkflowConfig,
@@ -39,14 +41,15 @@ func CommitedFileHandler(
 			return
 		}
 
-		err = service.ProcessCommittedFile(
+		file, err := service.ProcessCommittedFile(
 			ctx,
 			logger,
+			pool,
 			argoUrl,
 			baseUrl,
 			reqBody.RecordId,
 			reqBody.FileName,
-			reqBody.FileType,
+			reqBody.Mimetype,
 			configs,
 		)
 		if err != nil {
@@ -62,7 +65,7 @@ func CommitedFileHandler(
 			zap.String("recordId", reqBody.RecordId),
 			zap.String("filename", reqBody.FileName),
 		)
-		w.WriteHeader(http.StatusOK)
+		jsonapi.Encode(w, r, http.StatusCreated, file)
 	})
 }
 
@@ -73,7 +76,7 @@ func validateBody(body *requestBody) error {
 		errors = append(errors, "fileName")
 	}
 
-	if body.FileType == "" {
+	if body.Mimetype == "" {
 		errors = append(errors, "fileType")
 	}
 

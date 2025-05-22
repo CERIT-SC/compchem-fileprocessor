@@ -27,7 +27,7 @@ func NewServer(
 ) http.Handler {
 	mux := http.NewServeMux()
 
-	routes.AddRoutes(ctx, logger, mux, config)
+	routes.AddRoutes(ctx, logger, mux, config, pool)
 
 	return mux
 }

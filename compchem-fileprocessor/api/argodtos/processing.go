@@ -4,14 +4,14 @@ import "fmt"
 
 func NewProcessingStep(
 	recordId string,
-	workflowId string,
+	workflowId uint64,
 	previousTask string,
 	templateRef *TemplateReference,
 ) *Task {
 	template := templateRef.Template
 
 	return &Task{
-		Name:              fmt.Sprintf(template+"-%s-%s", recordId, workflowId),
+		Name:              fmt.Sprintf(template+"-%s-%d", recordId, workflowId),
 		Dependencies:      []string{previousTask},
 		TemplateReference: *templateRef,
 		Arguments: ParametersAndArtifacts{

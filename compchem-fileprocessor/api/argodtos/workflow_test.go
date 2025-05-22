@@ -11,7 +11,7 @@ import (
 func TestBuildWorkflow_IntegrationTest(t *testing.T) {
 	// Arrange
 	recordId := "12345"
-	workflowId := "2"
+	workflowId := uint64(2)
 	workflowName := "read-count-write"
 	baseUrl := "https://host-service.argo.svc.cluster.local:5000/api/experiments"
 

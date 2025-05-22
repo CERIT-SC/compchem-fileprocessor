@@ -12,7 +12,7 @@ import (
 func TestWriteFiles_AllArgumentsSupplied_ProperlyFormedTask(t *testing.T) {
 	// Arrange
 	recordId := "12345"
-	workflowId := "2"
+	workflowId := uint64(2)
 	previousTaskTemplate := "count-words"
 	previousTask := "count-words-12345-2"
 	expectedName := fmt.Sprintf(WriteFilesTemplate, previousTaskTemplate, recordId, workflowId)
@@ -52,7 +52,7 @@ func TestWriteFiles_AllArgumentsSupplied_ProperlyFormedTask(t *testing.T) {
 func TestWriteFiles_AllArgumentsSupplied_ProperlyFormedJson(t *testing.T) {
 	// Arrange
 	recordId := "12345"
-	workflowId := "2"
+	workflowId := uint64(2)
 	previousTaskTemplate := "count-words"
 	previousTask := "count-words-12345-2"
 	task := NewWriteWorkflow(recordId, workflowId, previousTask, previousTaskTemplate)

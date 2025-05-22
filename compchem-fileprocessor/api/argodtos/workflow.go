@@ -41,15 +41,15 @@ type Dag struct {
 	Tasks []*Task `json:"tasks"`
 }
 
-func constructWorkflowName(workflowName string, recordId string, workflowId string) string {
-	return fmt.Sprintf("%s-%s-%s", workflowName, recordId, workflowId)
+func constructWorkflowName(workflowName string, recordId string, workflowId uint64) string {
+	return fmt.Sprintf("%s-%s-%d", workflowName, recordId, workflowId)
 }
 
 func BuildWorkflow(
 	conf config.WorkflowConfig,
 	baseUrl string,
 	workflowName string,
-	workflowId string,
+	workflowId uint64,
 	recordId string,
 	fileIds []string,
 ) *Workflow {
@@ -60,7 +60,7 @@ func BuildWorkflow(
 
 func newWorkflow(workflowName string,
 	recordId string,
-	workflowId string,
+	workflowId uint64,
 	baseUrl string,
 	fileIds []string,
 	processingTasks []*Task,
@@ -106,7 +106,7 @@ func newWorkflow(workflowName string,
 func constructLinearDag(
 	conf []config.ProcessingTemplate,
 	recordId string,
-	workflowId string,
+	workflowId uint64,
 ) []*Task {
 	result := []*Task{}
 

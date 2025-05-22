@@ -12,7 +12,7 @@ import (
 func TestReadFiles_AllArgumentsSupplied_ProperlyFormedTask(t *testing.T) {
 	// Arrange
 	recordId := "recordId"
-	workflowId := "workflowId"
+	workflowId := uint64(1)
 	expectedName := fmt.Sprintf(ReadFilesTemplate, recordId, workflowId)
 	expectedDependencies := []string{}
 	expectedTemplateRefName := "read-files-template"
@@ -44,7 +44,7 @@ func TestReadFiles_AllArgumentsSupplied_ProperlyFormedTask(t *testing.T) {
 func TestReadFiles_AllArgumentsSupplied_ProperlyFormedJson(t *testing.T) {
 	// Arrange
 	recordId := "recordId"
-	workflowId := "workflowId"
+	workflowId := uint64(1)
 	task := NewReadFilesWorkflow(recordId, workflowId)
 
 	// Act
@@ -55,7 +55,7 @@ func TestReadFiles_AllArgumentsSupplied_ProperlyFormedJson(t *testing.T) {
 
 	// Define expected JSON
 	expectedJson := `{
-		"name": "read-files-recordId-workflowId",
+		"name": "read-files-recordId-1",
 		"dependencies": [],
 		"templateRef": {
 			"name": "read-files-template",

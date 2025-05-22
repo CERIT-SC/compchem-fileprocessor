@@ -113,9 +113,9 @@ func assertTableExists(ctx context.Context, t *testing.T, pool *pgxpool.Pool, ta
 		SELECT EXISTS (
 			SELECT FROM information_schema.tables
 			WHERE table_schema = 'public'
-			AND table_name = 'compchem_file'
+			AND table_name = $1
 		)
-	`).Scan(&tableExists)
+	`, table).Scan(&tableExists)
 
 	assert.NoError(t, err)
 	assert.True(t, tableExists, "Migration should have created test_table")

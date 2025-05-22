@@ -7,11 +7,18 @@ import (
 	"fi.muni.cz/invenio-file-processor/v2/config"
 	"fi.muni.cz/invenio-file-processor/v2/jsonapi"
 	"fi.muni.cz/invenio-file-processor/v2/routes/workflow/process"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/cors"
 	"go.uber.org/zap"
 )
 
-func AddRoutes(ctx context.Context, logger *zap.Logger, mux *http.ServeMux, config *config.Config) {
+func AddRoutes(
+	ctx context.Context,
+	logger *zap.Logger,
+	mux *http.ServeMux,
+	config *config.Config,
+	pool *pgxpool.Pool,
+) {
 	logger.Info("Adding server routes")
 
 	middleware := func(h http.Handler) http.Handler {
@@ -32,6 +39,7 @@ func AddRoutes(ctx context.Context, logger *zap.Logger, mux *http.ServeMux, conf
 		middleware(process.CommitedFileHandler(
 			ctx,
 			logger,
+			pool,
 			config.ArgoApi.Url,
 			config.CompchemApi.Url,
 			config.Workflows,
