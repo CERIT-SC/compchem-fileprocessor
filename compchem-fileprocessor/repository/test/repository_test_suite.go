@@ -90,9 +90,14 @@ func (s *PostgresTestSuite) RunInTestTransaction(testFunc func(tx pgx.Tx)) {
 	tx, err := s.Pool.BeginTx(s.Ctx, pgx.TxOptions{
 		IsoLevel: pgx.ReadUncommitted,
 	})
+	assert.NoError(s.T(), err)
+
+	defer func() {
+		err := tx.Rollback(s.Ctx)
+		if s.Ctx.Err() == nil {
+			assert.NoError(s.T(), err)
+		}
+	}()
 
 	testFunc(tx)
-
-	err = tx.Rollback(s.Ctx)
-	assert.NoError(s.T(), err)
 }

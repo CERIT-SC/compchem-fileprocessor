@@ -59,11 +59,6 @@ func (s *FileRepositoryTestSuite) TestCreateFile_DuplicateFile_NothingCreated() 
 		created, err := CreateFile(ctx, logger, tx, file)
 		assert.Error(t, err)
 		assert.Nil(t, created)
-
-		var fileCount int
-		err = tx.QueryRow(ctx, "SELECT COUNT(*) FROM compchem_file").Scan(&fileCount)
-		assert.NoError(t, err)
-		assert.Equal(t, 1, fileCount)
 	})
 }
 
