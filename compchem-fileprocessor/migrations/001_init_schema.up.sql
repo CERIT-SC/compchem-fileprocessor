@@ -13,7 +13,8 @@ CREATE TABLE compchem_workflow(
   workflow_name VARCHAR(255) NOT NULL,
   workflow_record_seq_id BIGINT NOT NULL,
 
-  CONSTRAINT unique_workflow_record UNIQUE (record_id, workflow_name, workflow_record_seq_id)
+  CONSTRAINT unique_workflow_record UNIQUE (record_id, workflow_record_seq_id),
+  CONSTRAINT workflow_seq_id_gt_zero CHECK (workflow_record_seq_id > 0)
 );
 
 CREATE TABLE compchem_workflow_file(
@@ -24,11 +25,6 @@ CREATE TABLE compchem_workflow_file(
   CONSTRAINT unique_workflow_file UNIQUE (compchem_file_id, compchem_workflow_id),
   CONSTRAINT compchem_file_id_fk FOREIGN KEY(compchem_file_id) REFERENCES compchem_file(id),
   CONSTRAINT compchem_workflow_id_fk FOREIGN KEY(compchem_workflow_id) REFERENCES compchem_workflow(id)
-);
-
-CREATE TABLE compchem_workflow_outbox(
-  workflow_id BIGINT PRIMARY KEY,
-  workflow_message JSONB NOT NULL
 );
 
 CREATE INDEX compchem_file_record_idx ON compchem_file(file_key, record_id);

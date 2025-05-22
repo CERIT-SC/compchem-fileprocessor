@@ -10,7 +10,7 @@ import (
 	"fi.muni.cz/invenio-file-processor/v2/config"
 	"fi.muni.cz/invenio-file-processor/v2/httpclient"
 	"fi.muni.cz/invenio-file-processor/v2/repository/filerepository"
-	workflowrepository "fi.muni.cz/invenio-file-processor/v2/repository/workflow"
+	"fi.muni.cz/invenio-file-processor/v2/repository/workflowrepository"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"

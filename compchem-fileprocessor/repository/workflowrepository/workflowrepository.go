@@ -15,7 +15,7 @@ func GetSequentialNumberForRecord(
 ) (uint64, error) {
 	logger.Debug("Get sequential number for record workflow", zap.String("recordId", recordId))
 	SQL := `
-  SELECT max(cw.workflow_record_seq_id) + 1 FROM compchem_workflow cw WHERE cw.record_id = $1;
+  SELECT COALESCE(max(cw.workflow_record_seq_id), 0) + 1 FROM compchem_workflow cw WHERE cw.record_id = $1;
   `
 
 	var number uint64
