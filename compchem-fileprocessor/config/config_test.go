@@ -91,7 +91,7 @@ func TestValidateConfig_ConfigNotOk_ConfigValidationNotOk(t *testing.T) {
 	}
 
 	result, errs := validateConfig(logger, cfg)
-	if len(errs) != 9 {
+	if len(errs) != 10 {
 		t.Errorf(
 			"Expected 9go get github.com/jackc/puddle/v2@v2.2. validation errors, got: %v",
 			errs,

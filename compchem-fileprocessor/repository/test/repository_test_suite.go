@@ -2,6 +2,7 @@ package repositorytest
 
 import (
 	"context"
+	"fmt"
 
 	"fi.muni.cz/invenio-file-processor/v2/config"
 	"fi.muni.cz/invenio-file-processor/v2/db"
@@ -100,4 +101,35 @@ func (s *PostgresTestSuite) RunInTestTransaction(testFunc func(tx pgx.Tx)) {
 	}()
 
 	testFunc(tx)
+}
+
+func ClearTable(ctx context.Context, pool *pgxpool.Pool, tableName string) error {
+	_, err := pool.Exec(
+		ctx,
+		fmt.Sprintf("DELETE FROM %s", pgx.Identifier.Sanitize([]string{tableName})),
+	)
+
+	return err
+}
+
+func GetCountInTable(ctx context.Context, pool *pgxpool.Pool, tableName string) (int, error) {
+	table := pgx.Identifier.Sanitize([]string{tableName})
+	var count int
+	err := pool.QueryRow(ctx, fmt.Sprintf("SELECT COUNT(*) FROM %s", table)).Scan(&count)
+	if err != nil {
+		return -1, nil
+	}
+
+	return count, nil
+}
+
+func GetCountInTableInTx(ctx context.Context, tx pgx.Tx, tableName string) (int, error) {
+	table := pgx.Identifier.Sanitize([]string{tableName})
+	var count int
+	err := tx.QueryRow(ctx, fmt.Sprintf("SELECT COUNT(*) FROM %s", table)).Scan(&count)
+	if err != nil {
+		return -1, nil
+	}
+
+	return count, nil
 }

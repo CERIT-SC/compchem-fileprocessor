@@ -1,23 +1,24 @@
-package filerepository
+package file_repository
 
 import (
 	"context"
 	"fmt"
 
+	repository_common "fi.muni.cz/invenio-file-processor/v2/repository/common"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
 )
 
 type CompchemFile struct {
-	FileKey  string
-	RecordId string
-	Mimetype string
+	FileKey  string `db:"file_key"`
+	RecordId string `db:"record_id"`
+	Mimetype string `db:"mimetype"`
 }
 
 type ExistingCompchemFile struct {
-	CompchemFile CompchemFile
-	Id           uint64
+	CompchemFile
+	Id uint64 `db:"id"`
 }
 
 func CreateFile(
@@ -62,40 +63,9 @@ func FindFilesByRecordId(
     WHERE record_id = $1;
     `
 
-	rows, err := pool.Query(ctx, SQL, recordId)
+	files, err := repository_common.QueryMany[ExistingCompchemFile](ctx, pool, SQL, recordId)
 	if err != nil {
-		logger.Error("Error when querying records files", zap.String("recordId", recordId))
-		return nil, err
-	}
-	defer rows.Close()
-
-	var files []ExistingCompchemFile
-
-	for rows.Next() {
-		var file ExistingCompchemFile
-		var fileKey, recordIdFromDB, mimetype string
-		var id uint64
-
-		err := rows.Scan(&id, &fileKey, &recordIdFromDB, &mimetype)
-		if err != nil {
-			logger.Error("Error scanning row", zap.Error(err))
-			return nil, err
-		}
-
-		file = ExistingCompchemFile{
-			CompchemFile: CompchemFile{
-				FileKey:  fileKey,
-				RecordId: recordIdFromDB,
-				Mimetype: mimetype,
-			},
-			Id: id,
-		}
-
-		files = append(files, file)
-	}
-
-	if err := rows.Err(); err != nil {
-		logger.Error("Error iterating over rows", zap.Error(err))
+		logger.Error("Error querying for records files")
 		return nil, err
 	}
 

@@ -1,4 +1,4 @@
-package workflowrepository
+package workflow_repository
 
 import (
 	"testing"
@@ -36,16 +36,14 @@ func (s *workflowRepositoryTestSuite) TestGetWorkflowSeqId_NoWorkflows_ReturnsOn
 }
 
 func (s *workflowRepositoryTestSuite) TestGetWorkflowSeqId_OneWorkflow_ReturnsTwo() {
-	pool := s.PostgresTestSuite.Pool
 	SQL := `
   INSERT INTO compchem_workflow(id, record_id, workflow_name, workflow_record_seq_id)
   VALUES (1, 'ej6wy-7fax6', 'count-words', 1)
   `
 
-	_, err := pool.Exec(s.PostgresTestSuite.Ctx, SQL)
-	assert.NoError(s.PostgresTestSuite.T(), err)
-
 	s.PostgresTestSuite.RunInTestTransaction(func(tx pgx.Tx) {
+		_, err := tx.Exec(s.PostgresTestSuite.Ctx, SQL)
+		assert.NoError(s.PostgresTestSuite.T(), err)
 		seqId, err := GetSequentialNumberForRecord(
 			s.PostgresTestSuite.Ctx,
 			s.PostgresTestSuite.Logger,
@@ -57,6 +55,6 @@ func (s *workflowRepositoryTestSuite) TestGetWorkflowSeqId_OneWorkflow_ReturnsTw
 	})
 }
 
-func TestRepositorySuite(t *testing.T) {
+func TestWorkflowRepositorySuite(t *testing.T) {
 	suite.Run(t, new(workflowRepositoryTestSuite))
 }

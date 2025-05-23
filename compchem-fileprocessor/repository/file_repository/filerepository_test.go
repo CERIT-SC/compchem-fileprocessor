@@ -1,4 +1,4 @@
-package filerepository
+package file_repository
 
 import (
 	"testing"

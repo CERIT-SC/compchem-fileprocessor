@@ -9,8 +9,10 @@ import (
 	"fi.muni.cz/invenio-file-processor/v2/api/argodtos"
 	"fi.muni.cz/invenio-file-processor/v2/config"
 	"fi.muni.cz/invenio-file-processor/v2/httpclient"
-	"fi.muni.cz/invenio-file-processor/v2/repository/filerepository"
-	"fi.muni.cz/invenio-file-processor/v2/repository/workflowrepository"
+	repository_common "fi.muni.cz/invenio-file-processor/v2/repository/common"
+	"fi.muni.cz/invenio-file-processor/v2/repository/file_repository"
+	"fi.muni.cz/invenio-file-processor/v2/repository/workflow_repository"
+	"fi.muni.cz/invenio-file-processor/v2/repository/workflowfile_repository"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
@@ -32,44 +34,20 @@ func ProcessCommittedFile(
 	fileName string,
 	mimetype string,
 	configs []config.WorkflowConfig,
-) (*filerepository.ExistingCompchemFile, error) {
-	tx, err := pool.BeginTx(ctx, pgx.TxOptions{
-		IsoLevel: pgx.RepeatableRead,
-	})
-	if err != nil {
-		logger.Error("Error when starting transaction")
-		return nil, err
-	}
-
-	seqNumber, err := workflowrepository.GetSequentialNumberForRecord(ctx, logger, tx, recordId)
-	if err != nil {
-		return nil, err
-	}
-
-	conf, err := findWorkflowConfig(configs, mimetype)
-	if err != nil {
-		return nil, err
-	}
-
-	workflow := argodtos.BuildWorkflow(
-		*conf,
-		baseUrl,
-		conf.Name,
-		seqNumber,
+) error {
+	workflow, err := createWorkflow(
+		ctx,
+		logger,
+		pool,
+		configs,
 		recordId,
-		[]string{fileName},
+		fileName,
+		mimetype,
+		baseUrl,
 	)
-
-	file, err := filerepository.CreateFile(ctx, logger, tx, filerepository.CompchemFile{
-		RecordId: recordId,
-		FileKey:  fileName,
-		Mimetype: mimetype,
-	})
 	if err != nil {
-		return nil, err
+		return err
 	}
-
-	tx.Commit(ctx)
 
 	// fire and forget?
 	err = submitWorkflow(ctx, logger, argoUrl, workflow)
@@ -79,11 +57,120 @@ func ProcessCommittedFile(
 			zap.String("fileName", fileName),
 			zap.String("recordId", recordId),
 			zap.String("mimetype", mimetype),
-			zap.Any("config", conf),
 		)
 	}
 
-	return file, nil
+	return nil
+}
+
+func constructWorkflowName(workflowName string, recordId string, workflowId uint64) string {
+	return fmt.Sprintf("%s-%s-%d", workflowName, recordId, workflowId)
+}
+
+func createWorkflow(
+	ctx context.Context,
+	logger *zap.Logger,
+	pool *pgxpool.Pool,
+	configs []config.WorkflowConfig,
+	recordId string,
+	fileName string,
+	mimetype string,
+	baseUrl string,
+) (*argodtos.Workflow, error) {
+	conf, err := findWorkflowConfig(configs, mimetype)
+	if err != nil {
+		return nil, err
+	}
+
+	workflowEntity, err := addWorkflowToDb(
+		ctx,
+		logger,
+		pool,
+		recordId,
+		fileName,
+		mimetype,
+		conf.Name,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	workflow := argodtos.BuildWorkflow(
+		*conf,
+		baseUrl,
+		workflowEntity.WorkflowName,
+		workflowEntity.WorkflowSeqId,
+		recordId,
+		[]string{fileName},
+	)
+
+	return workflow, nil
+}
+
+func addWorkflowToDb(
+	ctx context.Context,
+	logger *zap.Logger,
+	pool *pgxpool.Pool,
+	recordId string,
+	fileName string,
+	mimetype string,
+	workflowName string,
+) (*workflow_repository.ExistingWorfklowEntity, error) {
+	tx, err := pool.BeginTx(ctx, pgx.TxOptions{
+		IsoLevel: pgx.RepeatableRead,
+	})
+	if err != nil {
+		logger.Error("Error when starting transaction")
+		return nil, err
+	}
+
+	seqNumber, err := workflow_repository.GetSequentialNumberForRecord(ctx, logger, tx, recordId)
+	if err != nil {
+		return nil, err
+	}
+
+	fullWfName := constructWorkflowName(workflowName, recordId, seqNumber)
+
+	createdFile, err := file_repository.CreateFile(ctx, logger, tx, file_repository.CompchemFile{
+		RecordId: recordId,
+		FileKey:  fileName,
+		Mimetype: mimetype,
+	})
+	if err != nil {
+		tx.Rollback(ctx)
+		return nil, err
+	}
+	createdWorkflow, err := workflow_repository.CreateWorkflowForRecord(
+		ctx,
+		logger,
+		tx,
+		recordId,
+		fullWfName,
+		seqNumber,
+	)
+	if err != nil {
+		tx.Rollback(ctx)
+		return nil, err
+	}
+
+	_, err = workflowfile_repository.CreateWorkflowFile(
+		ctx,
+		logger,
+		tx,
+		createdFile.Id,
+		createdWorkflow.Id,
+	)
+	if err != nil {
+		tx.Rollback(ctx)
+		return nil, err
+	}
+
+	err = repository_common.CommitTx(ctx, tx, logger)
+	if err != nil {
+		return nil, err
+	}
+
+	return createdWorkflow, nil
 }
 
 func findWorkflowConfig(

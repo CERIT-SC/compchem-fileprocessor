@@ -183,6 +183,8 @@ func validateWorkflows(workflows []WorkflowConfig, errors map[string]string) {
 		}
 		if len(workflow.ProcessingTemplates) > 0 {
 			validateProcessingTemplates(workflow.ProcessingTemplates, index, errors)
+		} else {
+			errors[fmt.Sprintf(errorTemplate, "processing-templates", index)] = "no processing templates"
 		}
 	}
 }

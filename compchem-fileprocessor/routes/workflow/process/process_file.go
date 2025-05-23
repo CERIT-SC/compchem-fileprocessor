@@ -41,7 +41,7 @@ func CommitedFileHandler(
 			return
 		}
 
-		file, err := service.ProcessCommittedFile(
+		err = service.ProcessCommittedFile(
 			ctx,
 			logger,
 			pool,
@@ -65,7 +65,7 @@ func CommitedFileHandler(
 			zap.String("recordId", reqBody.RecordId),
 			zap.String("filename", reqBody.FileName),
 		)
-		jsonapi.Encode(w, r, http.StatusCreated, file)
+		w.WriteHeader(http.StatusCreated)
 	})
 }
 
