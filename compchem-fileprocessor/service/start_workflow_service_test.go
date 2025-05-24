@@ -90,8 +90,12 @@ func (s *processFileServiceTestSuite) TestCreateWorkflow_WorkflowCreated_DbInCor
 		pool,
 		configs,
 		"ej26y-ad28j",
-		"test.txt",
-		"txt",
+		[]File{
+			{
+				FileName: "test.txt",
+				Mimetype: "txt",
+			},
+		},
 		"http://localhost:7000",
 	)
 

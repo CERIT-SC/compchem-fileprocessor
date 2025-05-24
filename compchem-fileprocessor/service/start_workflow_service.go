@@ -13,10 +13,16 @@ import (
 	"fi.muni.cz/invenio-file-processor/v2/repository/file_repository"
 	"fi.muni.cz/invenio-file-processor/v2/repository/workflow_repository"
 	"fi.muni.cz/invenio-file-processor/v2/repository/workflowfile_repository"
+	"fi.muni.cz/invenio-file-processor/v2/util"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
 )
+
+type File struct {
+	FileName string `json:"fileName"`
+	Mimetype string `json:"mimetype"`
+}
 
 // for now one process for easch file type
 // TBD: wrap in transaction with isolation=REPEATABLE_READ, tx
@@ -24,15 +30,14 @@ import (
 // insert the new file for record this service method is only for committed files so it won't exist
 // submit workflow to argo, if successfull also save compchem_workflow with argo identifier
 // use the transactional outbox pattern: write new workflow as ${name}-${recordId}-${sequence} status: submitting
-func ProcessCommittedFile(
+func StartWorkflow(
 	ctx context.Context,
 	logger *zap.Logger,
 	pool *pgxpool.Pool,
 	argoUrl string,
 	baseUrl string,
 	recordId string,
-	fileName string,
-	mimetype string,
+	files []File,
 	configs []config.WorkflowConfig,
 ) error {
 	workflow, err := createWorkflow(
@@ -41,8 +46,7 @@ func ProcessCommittedFile(
 		pool,
 		configs,
 		recordId,
-		fileName,
-		mimetype,
+		files,
 		baseUrl,
 	)
 	if err != nil {
@@ -54,9 +58,7 @@ func ProcessCommittedFile(
 	if err != nil {
 		logger.Error(
 			"failed to submit workflow",
-			zap.String("fileName", fileName),
 			zap.String("recordId", recordId),
-			zap.String("mimetype", mimetype),
 		)
 	}
 
@@ -73,11 +75,10 @@ func createWorkflow(
 	pool *pgxpool.Pool,
 	configs []config.WorkflowConfig,
 	recordId string,
-	fileName string,
-	mimetype string,
+	files []File,
 	baseUrl string,
 ) (*argodtos.Workflow, error) {
-	conf, err := findWorkflowConfig(configs, mimetype)
+	conf, err := findWorkflowConfig(configs, files[0].Mimetype)
 	if err != nil {
 		return nil, err
 	}
@@ -87,8 +88,7 @@ func createWorkflow(
 		logger,
 		pool,
 		recordId,
-		fileName,
-		mimetype,
+		files,
 		conf.Name,
 	)
 	if err != nil {
@@ -101,7 +101,7 @@ func createWorkflow(
 		workflowEntity.WorkflowName,
 		workflowEntity.WorkflowSeqId,
 		recordId,
-		[]string{fileName},
+		util.Map(files, func(file File) string { return file.FileName }),
 	)
 
 	return workflow, nil
@@ -112,8 +112,7 @@ func addWorkflowToDb(
 	logger *zap.Logger,
 	pool *pgxpool.Pool,
 	recordId string,
-	fileName string,
-	mimetype string,
+	files []File,
 	workflowName string,
 ) (*workflow_repository.ExistingWorfklowEntity, error) {
 	tx, err := pool.BeginTx(ctx, pgx.TxOptions{
@@ -131,15 +130,6 @@ func addWorkflowToDb(
 
 	fullWfName := constructWorkflowName(workflowName, recordId, seqNumber)
 
-	createdFile, err := file_repository.CreateFile(ctx, logger, tx, file_repository.CompchemFile{
-		RecordId: recordId,
-		FileKey:  fileName,
-		Mimetype: mimetype,
-	})
-	if err != nil {
-		tx.Rollback(ctx)
-		return nil, err
-	}
 	createdWorkflow, err := workflow_repository.CreateWorkflowForRecord(
 		ctx,
 		logger,
@@ -153,16 +143,34 @@ func addWorkflowToDb(
 		return nil, err
 	}
 
-	_, err = workflowfile_repository.CreateWorkflowFile(
-		ctx,
-		logger,
-		tx,
-		createdFile.Id,
-		createdWorkflow.Id,
-	)
-	if err != nil {
-		tx.Rollback(ctx)
-		return nil, err
+	// TBD extract to improve function readability
+	for _, file := range files {
+		createdFile, err := file_repository.CreateFile(
+			ctx,
+			logger,
+			tx,
+			file_repository.CompchemFile{
+				RecordId: recordId,
+				FileKey:  file.FileName,
+				Mimetype: file.Mimetype,
+			},
+		)
+		if err != nil {
+			tx.Rollback(ctx)
+			return nil, err
+		}
+
+		_, err = workflowfile_repository.CreateWorkflowFile(
+			ctx,
+			logger,
+			tx,
+			createdFile.Id,
+			createdWorkflow.Id,
+		)
+		if err != nil {
+			tx.Rollback(ctx)
+			return nil, err
+		}
 	}
 
 	err = repository_common.CommitTx(ctx, tx, logger)

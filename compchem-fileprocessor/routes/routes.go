@@ -6,7 +6,7 @@ import (
 
 	"fi.muni.cz/invenio-file-processor/v2/config"
 	"fi.muni.cz/invenio-file-processor/v2/jsonapi"
-	"fi.muni.cz/invenio-file-processor/v2/routes/workflow/process"
+	"fi.muni.cz/invenio-file-processor/v2/routes/workflow/start_workflow_route"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/cors"
 	"go.uber.org/zap"
@@ -36,7 +36,7 @@ func AddRoutes(
 	)
 	mux.Handle(
 		buildPathV1("POST", config.ApiContext, "/workflows"),
-		middleware(process.CommitedFileHandler(
+		middleware(start_workflow_route.PostWorkflowHandler(
 			ctx,
 			logger,
 			pool,

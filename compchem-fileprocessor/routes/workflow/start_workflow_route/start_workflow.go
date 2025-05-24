@@ -1,4 +1,4 @@
-package process
+package start_workflow_route
 
 import (
 	"context"
@@ -15,12 +15,11 @@ import (
 )
 
 type requestBody struct {
-	RecordId string `json:"recordId"`
-	FileName string `json:"fileName"`
-	Mimetype string `json:"mimetype"`
+	Files    []service.File `json:"files"`
+	RecordId string         `json:"recordId"`
 }
 
-func CommitedFileHandler(
+func PostWorkflowHandler(
 	ctx context.Context,
 	logger *zap.Logger,
 	pool *pgxpool.Pool,
@@ -41,15 +40,14 @@ func CommitedFileHandler(
 			return
 		}
 
-		err = service.ProcessCommittedFile(
+		err = service.StartWorkflow(
 			ctx,
 			logger,
 			pool,
 			argoUrl,
 			baseUrl,
 			reqBody.RecordId,
-			reqBody.FileName,
-			reqBody.Mimetype,
+			reqBody.Files,
 			configs,
 		)
 		if err != nil {
@@ -63,7 +61,6 @@ func CommitedFileHandler(
 		logger.Info(
 			"File successfully submitted for processing",
 			zap.String("recordId", reqBody.RecordId),
-			zap.String("filename", reqBody.FileName),
 		)
 		w.WriteHeader(http.StatusCreated)
 	})
@@ -72,16 +69,14 @@ func CommitedFileHandler(
 func validateBody(body *requestBody) error {
 	var errors []string
 
-	if body.FileName == "" {
-		errors = append(errors, "fileName")
-	}
-
-	if body.Mimetype == "" {
-		errors = append(errors, "fileType")
-	}
-
 	if body.RecordId == "" {
 		errors = append(errors, "recordId")
+	}
+
+	if len(body.Files) > 0 {
+		validateFiles(body.Files, errors)
+	} else {
+		errors = append(errors, "files")
 	}
 
 	if len(errors) > 0 {
@@ -89,4 +84,18 @@ func validateBody(body *requestBody) error {
 	}
 
 	return nil
+}
+
+func validateFiles(files []service.File, errors []string) {
+	mimetype := files[0].Mimetype
+
+	for index, file := range files {
+		if file.FileName == "" {
+			errors = append(errors, fmt.Sprintf("fileName-%d", index))
+		}
+
+		if file.Mimetype == "" || file.Mimetype != mimetype {
+			errors = append(errors, fmt.Sprintf("mimetype-%d", index))
+		}
+	}
 }

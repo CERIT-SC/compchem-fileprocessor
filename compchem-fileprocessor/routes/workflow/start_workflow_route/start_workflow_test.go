@@ -1,4 +1,4 @@
-package process
+package start_workflow_route
 
 import (
 	"net/http/httptest"
@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"fi.muni.cz/invenio-file-processor/v2/routes/common"
+	"fi.muni.cz/invenio-file-processor/v2/service"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -28,16 +29,24 @@ func TestValidateBody_MissingBody_ReturnsError(t *testing.T) {
 
 func TestValidateBody_OkBody_ReturnsCorrectBody(t *testing.T) {
 	expected := requestBody{
-		FileName: "test",
-		Mimetype: "test",
+		Files: []service.File{
+			{
+				FileName: "test",
+				Mimetype: "test",
+			},
+		},
 		RecordId: "ejw6-7fpy",
 	}
 
 	reader := strings.NewReader(`
   {
-    "fileName": "test",
     "recordId": "ejw6-7fpy",
-    "mimetype": "test"
+    "files": [
+      {
+        "fileName": "test",
+        "mimetype": "test"
+      }
+    ]
   }
   `)
 
