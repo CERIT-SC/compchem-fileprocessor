@@ -95,6 +95,10 @@ func (s *processFileServiceTestSuite) TestCreateWorkflow_WorkflowCreated_DbInCor
 				FileName: "test.txt",
 				Mimetype: "txt",
 			},
+			{
+				FileName: "test2.txt",
+				Mimetype: "txt",
+			},
 		},
 		"http://localhost:7000",
 	)
@@ -105,13 +109,24 @@ func (s *processFileServiceTestSuite) TestCreateWorkflow_WorkflowCreated_DbInCor
 	file, err := repository_common.QueryOne[file_repository.ExistingCompchemFile](
 		ctx,
 		pool,
-		"SELECT * FROM compchem_file",
+		"SELECT * FROM compchem_file WHERE file_key = 'test.txt'",
 	)
 	assert.NoError(t, err)
 	assert.Equal(t, file.Mimetype, "txt")
 	assert.Equal(t, file.FileKey, "test.txt")
 	assert.Equal(t, file.RecordId, "ej26y-ad28j")
 	assert.NotEmpty(t, file.Id)
+
+	file1, err := repository_common.QueryOne[file_repository.ExistingCompchemFile](
+		ctx,
+		pool,
+		"SELECT * FROM compchem_file WHERE file_key = 'test2.txt'",
+	)
+	assert.NoError(t, err)
+	assert.Equal(t, file1.Mimetype, "txt")
+	assert.Equal(t, file1.FileKey, "test2.txt")
+	assert.Equal(t, file1.RecordId, "ej26y-ad28j")
+	assert.NotEmpty(t, file1.Id)
 
 	workflow, err := repository_common.QueryOne[workflow_repository.ExistingWorfklowEntity](
 		ctx,
@@ -126,11 +141,22 @@ func (s *processFileServiceTestSuite) TestCreateWorkflow_WorkflowCreated_DbInCor
 	workflowFile, err := repository_common.QueryOne[workflowfile_repository.ExistingWorkflowFileEntity](
 		ctx,
 		pool,
-		"SELECT * FROM compchem_workflow_file",
+		"SELECT * FROM compchem_workflow_file WHERE compchem_file_id = $1",
+		file.Id,
 	)
 	assert.NoError(t, err)
 	assert.Equal(t, workflowFile.FileId, file.Id)
 	assert.Equal(t, workflowFile.WorkflowId, workflow.Id)
+
+	workflowFile1, err := repository_common.QueryOne[workflowfile_repository.ExistingWorkflowFileEntity](
+		ctx,
+		pool,
+		"SELECT * FROM compchem_workflow_file WHERE compchem_file_id = $1",
+		file1.Id,
+	)
+	assert.NoError(t, err)
+	assert.Equal(t, workflowFile1.FileId, file1.Id)
+	assert.Equal(t, workflowFile1.WorkflowId, workflow.Id)
 
 	err = repositorytest.ClearTable(ctx, pool, "compchem_workflow_file")
 	assert.NoError(t, err)
