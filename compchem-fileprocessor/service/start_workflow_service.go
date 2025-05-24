@@ -147,41 +147,7 @@ func addWorkflowToDb(
 
 	// TBD extract to improve function readability
 	for _, file := range files {
-		createdFile, err := file_repository.FindFileByRecordAndName(
-			ctx,
-			logger,
-			tx,
-			recordId,
-			file.FileName,
-		)
-		if err != nil {
-			tx.Rollback(ctx)
-			return nil, err
-		}
-		if createdFile == nil {
-			createdFile, err = file_repository.CreateFile(
-				ctx,
-				logger,
-				tx,
-				file_repository.CompchemFile{
-					RecordId: recordId,
-					FileKey:  file.FileName,
-					Mimetype: file.Mimetype,
-				},
-			)
-			if err != nil {
-				tx.Rollback(ctx)
-				return nil, err
-			}
-		}
-
-		_, err = workflowfile_repository.CreateWorkflowFile(
-			ctx,
-			logger,
-			tx,
-			createdFile.Id,
-			createdWorkflow.Id,
-		)
+		err = createWorkflowFile(ctx, tx, logger, file, recordId, createdWorkflow.Id)
 		if err != nil {
 			tx.Rollback(ctx)
 			return nil, err
@@ -194,6 +160,54 @@ func addWorkflowToDb(
 	}
 
 	return createdWorkflow, nil
+}
+
+func createWorkflowFile(
+	ctx context.Context,
+	tx pgx.Tx,
+	logger *zap.Logger,
+	file File,
+	recordId string,
+	workflowId uint64,
+) error {
+	createdFile, err := file_repository.FindFileByRecordAndName(
+		ctx,
+		logger,
+		tx,
+		recordId,
+		file.FileName,
+	)
+	if err != nil {
+		return err
+	}
+	if createdFile == nil {
+		createdFile, err = file_repository.CreateFile(
+			ctx,
+			logger,
+			tx,
+			file_repository.CompchemFile{
+				RecordId: recordId,
+				FileKey:  file.FileName,
+				Mimetype: file.Mimetype,
+			},
+		)
+		if err != nil {
+			return err
+		}
+	}
+
+	_, err = workflowfile_repository.CreateWorkflowFile(
+		ctx,
+		logger,
+		tx,
+		createdFile.Id,
+		workflowId,
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func findWorkflowConfig(
