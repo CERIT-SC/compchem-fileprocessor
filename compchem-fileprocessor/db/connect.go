@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 
@@ -59,6 +60,7 @@ func doMigration(
 			zap.String("host", pgConfig.Host),
 			zap.String("port", pgConfig.Port),
 			zap.String("database", pgConfig.Database),
+			zap.Error(err),
 		)
 		return err
 	}
@@ -74,17 +76,19 @@ func doMigration(
 			zap.String("host", pgConfig.Host),
 			zap.String("port", pgConfig.Port),
 			zap.String("database", pgConfig.Database),
+			zap.Error(err),
 		)
 		return err
 	}
 
 	err = migration.Up()
-	if err != nil {
+	if err != nil && !errors.Is(err, migrate.ErrNoChange) {
 		logger.Error(
 			"Error migrating schema",
 			zap.String("host", pgConfig.Host),
 			zap.String("port", pgConfig.Port),
 			zap.String("database", pgConfig.Database),
+			zap.Error(err),
 		)
 		return err
 	}

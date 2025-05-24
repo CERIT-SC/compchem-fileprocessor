@@ -15,11 +15,11 @@ migrations: "file://migrations"
 
 postgres:
   host: localhost
-  port: 5432
+  port: 6543
   database: fileprocessor
   auth:
-    username: compchem-fileprocessor
-    password: compchem123
+    user: fileprocessor
+    password: password123
 
 workflows:
   - name: count-words

@@ -2,6 +2,7 @@ package file_repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	repository_common "fi.muni.cz/invenio-file-processor/v2/repository/common"
@@ -75,4 +76,37 @@ func FindFilesByRecordId(
 		zap.Int("count", len(files)),
 	)
 	return files, nil
+}
+
+func FindFileByRecordAndName(
+	ctx context.Context,
+	logger *zap.Logger,
+	tx pgx.Tx,
+	recordId string,
+	fileName string,
+) (*ExistingCompchemFile, error) {
+	logger.Debug(
+		"Query for single file",
+		zap.String("fileName", fileName),
+		zap.String("recordId", recordId),
+	)
+	SQL := `
+  SELECT * FROM compchem_file
+  WHERE file_key = $1 AND record_id = $2
+  `
+
+	file, err := repository_common.QueryOneTx[ExistingCompchemFile](
+		ctx,
+		tx,
+		SQL,
+		fileName,
+		recordId,
+	)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	}
+
+	return file, nil
 }

@@ -28,6 +28,26 @@ func CommitTx(ctx context.Context, tx pgx.Tx, logger *zap.Logger) error {
 	return err
 }
 
+func QueryOneTx[T any](
+	ctx context.Context,
+	tx pgx.Tx,
+	query string,
+	args ...any,
+) (*T, error) {
+	rows, err := tx.Query(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	result, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[T])
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}
+
 func QueryOne[T any](
 	ctx context.Context,
 	pool *pgxpool.Pool,

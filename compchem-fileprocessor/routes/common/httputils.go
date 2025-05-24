@@ -33,7 +33,7 @@ func GetValidRequestBody[T any](
 		jsonapi.Encode(w, r, 400, ErrorResponse{
 			Message: "Failed to decode request for processing",
 		})
-		return nil, fmt.Errorf("Decode error")
+		return nil, fmt.Errorf("Decode error: %v", err)
 	}
 
 	if err := validateBody(&reqBody); err != nil {

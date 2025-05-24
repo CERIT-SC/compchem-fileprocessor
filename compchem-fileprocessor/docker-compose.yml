@@ -1,0 +1,18 @@
+version: "3.8"
+
+services:
+  db:
+    image: "postgres:17"
+    container_name: fileprocessor-database
+    restart: always
+    ports:
+      - "6543:5432"
+    environment:
+      POSTGRES_USER: fileprocessor
+      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: fileprocessor
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

@@ -145,19 +145,32 @@ func addWorkflowToDb(
 
 	// TBD extract to improve function readability
 	for _, file := range files {
-		createdFile, err := file_repository.CreateFile(
+		createdFile, err := file_repository.FindFileByRecordAndName(
 			ctx,
 			logger,
 			tx,
-			file_repository.CompchemFile{
-				RecordId: recordId,
-				FileKey:  file.FileName,
-				Mimetype: file.Mimetype,
-			},
+			recordId,
+			file.FileName,
 		)
 		if err != nil {
 			tx.Rollback(ctx)
 			return nil, err
+		}
+		if createdFile == nil {
+			createdFile, err = file_repository.CreateFile(
+				ctx,
+				logger,
+				tx,
+				file_repository.CompchemFile{
+					RecordId: recordId,
+					FileKey:  file.FileName,
+					Mimetype: file.Mimetype,
+				},
+			)
+			if err != nil {
+				tx.Rollback(ctx)
+				return nil, err
+			}
 		}
 
 		_, err = workflowfile_repository.CreateWorkflowFile(
