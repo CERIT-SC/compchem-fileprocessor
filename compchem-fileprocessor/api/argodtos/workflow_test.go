@@ -131,6 +131,14 @@ func TestBuildWorkflow_IntegrationTest(t *testing.T) {
 										{
 											"name": "record-id",
 											"value": "{{workflow.parameters.record-id}}"
+										},
+										{
+											"name": "workflow-name",
+											"value": "read-count-write-12345-2"
+										},
+										{
+											"name": "task-discriminator",
+											"value": "count-words"
 										}
 									],
 									"artifacts": [
@@ -174,6 +182,14 @@ func TestBuildWorkflow_IntegrationTest(t *testing.T) {
 										{
 											"name": "record-id",
 											"value": "{{workflow.parameters.record-id}}"
+										},
+										{
+											"name": "workflow-name",
+											"value": "read-count-write-12345-2"
+										},
+										{
+											"name": "task-discriminator",
+											"value": "count-words-advanced"
 										}
 									],
 									"artifacts": [

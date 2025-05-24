@@ -9,6 +9,7 @@ func NewWriteWorkflow(
 	workflowId uint64,
 	previousTaskFullName string,
 	previousTaskTemplateName string,
+	workflowFullName string,
 ) *Task {
 	return &Task{
 		Name: fmt.Sprintf(
@@ -31,6 +32,14 @@ func NewWriteWorkflow(
 				{
 					Name:  "record-id",
 					Value: "{{workflow.parameters.record-id}}",
+				},
+				{
+					Name:  "workflow-name",
+					Value: workflowFullName,
+				},
+				{
+					Name:  "task-discriminator",
+					Value: previousTaskTemplateName,
 				},
 			},
 			Artifacts: []Artifact{

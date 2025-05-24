@@ -4,6 +4,8 @@ set -e
 
 BASE_URL="$1"
 RECORD_ID="$2"
+WORKFLOW_NAME="$3"
+TASK_DISCRIMINATOR="$4"
 FILES_DIR="/input"
 
 if [ -z "$BASE_URL" ] || [ -z "$RECORD_ID" ]; then
@@ -17,7 +19,7 @@ if [ ! -d "$FILES_DIR" ]; then
 fi
 
 for FILE_PATH in "$FILES_DIR"/*; do
-  FILE_NAME=1-$(basename "$FILE_PATH")
+  FILE_NAME=$(basename "$FILE_PATH")-$JOB_DISCRIMINATOR-$WORKFLOW_NAME
   echo "Uploading file: $FILE_NAME"
 
   # TODO: temporary curl headers, -k -H

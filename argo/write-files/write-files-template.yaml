@@ -8,6 +8,8 @@ spec:
     parameters:
       - name: base-url
       - name: record-id
+      - name: workflow-name
+      - name: task-discriminator
     artifacts:
       - name: input-files
   templates:
@@ -16,6 +18,8 @@ spec:
         parameters:
           - name: base-url
           - name: record-id
+          - name: workflow-name
+          - name: task-discriminator
         artifacts:
           - name: input-files
             path: /input
@@ -23,4 +27,4 @@ spec:
         image: xkollar173/argo-write-files:0.0.3
         command: [sh, "-c"]
         args:
-          - ./write-files.sh "{{inputs.parameters.base-url}}" "{{inputs.parameters.record-id}}"
+          - ./write-files.sh "{{inputs.parameters.base-url}}" "{{inputs.parameters.record-id}}" "{{inputs.parameters.workflow-name}}" "{{inputs.parameters.task-discriminator}}"

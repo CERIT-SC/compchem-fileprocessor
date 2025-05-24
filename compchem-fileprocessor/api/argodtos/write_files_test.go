@@ -21,7 +21,7 @@ func TestWriteFiles_AllArgumentsSupplied_ProperlyFormedTask(t *testing.T) {
 	expectedTemplateRefTemplate := "write-files"
 
 	// Act
-	task := NewWriteWorkflow(recordId, workflowId, previousTask, previousTaskTemplate)
+	task := NewWriteWorkflow(recordId, workflowId, previousTask, previousTaskTemplate, previousTask)
 
 	// Assert
 	assert.Equal(t, expectedName, task.Name)
@@ -30,7 +30,7 @@ func TestWriteFiles_AllArgumentsSupplied_ProperlyFormedTask(t *testing.T) {
 	assert.Equal(t, expectedTemplateRefTemplate, task.TemplateReference.Template)
 
 	// Verify parameters
-	assert.Equal(t, 2, len(task.Arguments.Parameters))
+	assert.Equal(t, 4, len(task.Arguments.Parameters))
 
 	// Check each parameter
 	assert.Equal(t, "base-url", task.Arguments.Parameters[0].Name)
@@ -38,6 +38,12 @@ func TestWriteFiles_AllArgumentsSupplied_ProperlyFormedTask(t *testing.T) {
 
 	assert.Equal(t, "record-id", task.Arguments.Parameters[1].Name)
 	assert.Equal(t, "{{workflow.parameters.record-id}}", task.Arguments.Parameters[1].Value)
+
+	assert.Equal(t, "workflow-name", task.Arguments.Parameters[2].Name)
+	assert.Equal(t, "count-words-12345-2", task.Arguments.Parameters[2].Value)
+
+	assert.Equal(t, "task-discriminator", task.Arguments.Parameters[3].Name)
+	assert.Equal(t, "count-words", task.Arguments.Parameters[3].Value)
 
 	// Verify artifacts
 	assert.Equal(t, 1, len(task.Arguments.Artifacts))
@@ -55,7 +61,7 @@ func TestWriteFiles_AllArgumentsSupplied_ProperlyFormedJson(t *testing.T) {
 	workflowId := uint64(2)
 	previousTaskTemplate := "count-words"
 	previousTask := "count-words-12345-2"
-	task := NewWriteWorkflow(recordId, workflowId, previousTask, previousTaskTemplate)
+	task := NewWriteWorkflow(recordId, workflowId, previousTask, previousTaskTemplate, previousTask)
 
 	// Act
 	taskJson, err := json.Marshal(task)
@@ -80,6 +86,14 @@ func TestWriteFiles_AllArgumentsSupplied_ProperlyFormedJson(t *testing.T) {
 				{
 					"name": "record-id",
 					"value": "{{workflow.parameters.record-id}}"
+				},
+				{
+					"name": "workflow-name",
+					"value": "count-words-12345-2"
+				},
+				{
+					"name": "task-discriminator",
+					"value": "count-words"
 				}
 			],
 			"artifacts": [

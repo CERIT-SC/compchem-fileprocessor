@@ -48,7 +48,7 @@ func BuildWorkflow(
 	recordId string,
 	fileIds []string,
 ) *Workflow {
-	tasks := constructLinearDag(conf.ProcessingTemplates, recordId, workflowId)
+	tasks := constructLinearDag(conf.ProcessingTemplates, workflowName, recordId, workflowId)
 
 	return newWorkflow(workflowName, recordId, baseUrl, fileIds, tasks)
 }
@@ -97,6 +97,7 @@ func newWorkflow(workflowName string,
 
 func constructLinearDag(
 	conf []config.ProcessingTemplate,
+	worfklowName string,
 	recordId string,
 	workflowId uint64,
 ) []*Task {
@@ -111,7 +112,7 @@ func constructLinearDag(
 			Name:     cfg.Name,
 			Template: cfg.Template,
 		})
-		writeTask := NewWriteWorkflow(recordId, workflowId, task.Name, cfg.Template)
+		writeTask := NewWriteWorkflow(recordId, workflowId, task.Name, cfg.Template, worfklowName)
 		result = append(result, task, writeTask)
 	}
 
