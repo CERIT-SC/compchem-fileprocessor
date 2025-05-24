@@ -24,7 +24,7 @@ spec:
           - name: input-files
             path: /input
       container:
-        image: xkollar173/argo-write-files:0.0.3
+        image: xkollar173/argo-write-files:0.0.4
         command: [sh, "-c"]
         args:
           - ./write-files.sh "{{inputs.parameters.base-url}}" "{{inputs.parameters.record-id}}" "{{inputs.parameters.workflow-name}}" "{{inputs.parameters.task-discriminator}}"

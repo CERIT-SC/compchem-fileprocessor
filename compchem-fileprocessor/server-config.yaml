@@ -27,3 +27,5 @@ workflows:
     processing-templates:
       - name: count-words-template
         template: count-words
+      - name: content-analysiys
+        template: content-analysis

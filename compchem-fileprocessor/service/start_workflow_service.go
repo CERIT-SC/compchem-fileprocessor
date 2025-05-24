@@ -54,13 +54,15 @@ func StartWorkflow(
 	}
 
 	// fire and forget?
-	err = submitWorkflow(ctx, logger, argoUrl, workflow)
-	if err != nil {
-		logger.Error(
-			"failed to submit workflow",
-			zap.String("recordId", recordId),
-		)
-	}
+	go func() {
+		err = submitWorkflow(ctx, logger, argoUrl, workflow)
+		if err != nil {
+			logger.Error(
+				"failed to submit workflow",
+				zap.String("recordId", recordId),
+			)
+		}
+	}()
 
 	return nil
 }
