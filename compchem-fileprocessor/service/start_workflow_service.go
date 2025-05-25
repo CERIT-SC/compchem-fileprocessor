@@ -130,9 +130,11 @@ func addWorkflowToDb(
 		ctx,
 		logger,
 		tx,
-		recordId,
-		workflowName,
-		seqNumber,
+		workflow_repository.WorkflowEntity{
+			RecordId:      recordId,
+			WorkflowName:  workflowName,
+			WorkflowSeqId: seqNumber,
+		},
 	)
 	if err != nil {
 		tx.Rollback(ctx)

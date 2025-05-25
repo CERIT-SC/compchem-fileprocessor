@@ -22,6 +22,42 @@ type ExistingCompchemFile struct {
 	Id uint64 `db:"id"`
 }
 
+func FindFilesForWorkflow(
+	ctx context.Context,
+	logger *zap.Logger,
+	tx pgx.Tx,
+	workflowName string,
+	workflowSeq uint64,
+	recordId string,
+) ([]string, error) {
+	logger.Debug(
+		"Getting all files for workflow",
+		zap.String("workflow", fmt.Sprintf("%s-%s-%d", workflowName, recordId, workflowSeq)),
+	)
+	const SQL = `
+    SELECT f.file_key
+    FROM compchem_workflow wf
+    INNER JOIN compchem_workflow_file wff
+    INNER JOIN compchem_file f
+    WHERE wf.record_id = $1 AND wf.workflow_name = $2 AND wf.workflow_seq_id = $3
+    `
+
+	fileKeys, err := repository_common.QueryManyTx[string](
+		ctx,
+		tx,
+		SQL,
+		recordId,
+		workflowName,
+		workflowSeq,
+	)
+	if err != nil {
+		logger.Error("Error when retrieving files for workflow", zap.Error(err))
+		return nil, err
+	}
+
+	return fileKeys, nil
+}
+
 func CreateFile(
 	ctx context.Context,
 	logger *zap.Logger,

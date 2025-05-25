@@ -42,6 +42,24 @@ type Client struct {
 	options    *Opts
 }
 
+type ClientError struct {
+	Status  int
+	Message string
+}
+
+type ServerError struct {
+	Status  int
+	Message string
+}
+
+func (e *ClientError) Error() string {
+	return fmt.Sprintf("Error on client side, status: %d, message: %s", e.Status, e.Message)
+}
+
+func (e *ServerError) Error() string {
+	return fmt.Sprintf("Error on server side, status: %d, message: %s", e.Status, e.Message)
+}
+
 func (c *Client) requestRaw(
 	ctx context.Context,
 	method string,
@@ -120,10 +138,11 @@ func (c *Client) requestRaw(
 			c.options.Logger.Error("Got 400 response", zap.Int("response-code", response.StatusCode),
 				zap.Any("request-body", body),
 				zap.Any("response-body", string(respBody)))
-			return nil, fmt.Errorf("Got 400 response")
+			return nil, &ClientError{Status: response.StatusCode, Message: string(respBody)}
 		} else {
 			c.options.Logger.Error("Got 500 response will retry.", zap.Int("response-code", response.StatusCode),
 				zap.Any("body", string(respBody)))
+			lastError = &ServerError{Status: response.StatusCode, Message: string(respBody)}
 		}
 	}
 

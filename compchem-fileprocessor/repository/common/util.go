@@ -68,6 +68,26 @@ func QueryOne[T any](
 	return &result, nil
 }
 
+func QueryManyTx[T any](
+	ctx context.Context,
+	tx pgx.Tx,
+	query string,
+	args ...any,
+) ([]T, error) {
+	rows, err := tx.Query(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	results, err := pgx.CollectRows(rows, pgx.RowToStructByName[T])
+	if err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
+
 func QueryMany[T any](
 	ctx context.Context,
 	pool *pgxpool.Pool,

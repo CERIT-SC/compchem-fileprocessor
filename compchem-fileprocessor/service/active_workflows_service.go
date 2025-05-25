@@ -1,0 +1,204 @@
+package service
+
+import (
+	"context"
+	"fmt"
+	"regexp"
+	"strconv"
+	"strings"
+
+	"fi.muni.cz/invenio-file-processor/v2/httpclient"
+	"fi.muni.cz/invenio-file-processor/v2/repository/file_repository"
+	"fi.muni.cz/invenio-file-processor/v2/util"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"go.uber.org/zap"
+)
+
+type WorkflowWithFile struct {
+	Workflow WorkflowWithStatus `json:"workflow"`
+	Files    []string           `json:"files"`
+}
+
+type WorkflowStatus struct {
+	Phase      string `json:"phase"`
+	StartedAt  string `json:"startedAt"`
+	FinishedAt string `json:"finishedAt"`
+	Progress   string `json:"progress"`
+}
+
+type WorkflowWithStatus struct {
+	Status   WorkflowStatus   `json:"status"`
+	Metadata WorkflowMetadata `json:"metadata"`
+}
+
+type WorkflowMetadata struct {
+	Name string `json:"name"`
+}
+
+type ArgoWorkflowsResponse struct {
+	Items    []WorkflowWithStatus `json:"items"`
+	Metadata ListMetadata         `json:"metadata"`
+}
+
+type ListMetadata struct {
+	Continue string `json:"continue"`
+}
+
+type State string
+
+const (
+	StateError     State = "Error"
+	StatePending   State = "Pending"
+	StateRunning   State = "Running"
+	StateSucceeded State = "Succeeded"
+	StateFailed    State = "Failed"
+)
+
+func GetWorkflowDetailed(
+	ctx context.Context,
+	logger *zap.Logger,
+	pool *pgxpool.Pool,
+	argoUrl string,
+	workflowFullName string,
+	namespace string,
+	ignoreTls bool,
+) (*WorkflowWithFile, error) {
+	workflow, err := getSingleWorkflow(ctx, logger, argoUrl, namespace, workflowFullName, ignoreTls)
+	if err != nil {
+		return nil, err
+	}
+
+	tx, err := pool.Begin(ctx)
+	if err != nil {
+		logger.Error(
+			"error when starting tx for detail workflow",
+			zap.String("workflowName", workflowFullName),
+		)
+		return nil, err
+	}
+
+	regex := regexp.MustCompile("-")
+
+	parts := regex.Split(workflowFullName, -1)
+	if len(parts) != 3 {
+		return nil, fmt.Errorf(
+			"Wrong format of workflow name, or it may contain more than 3 dashes, dash count: %d",
+			len(parts),
+		)
+	}
+	workflowName := parts[0]
+	recordId := parts[1]
+	workflowSeq, err := strconv.ParseUint(parts[2], 10, 64)
+
+	files, err := file_repository.FindFilesForWorkflow(
+		ctx,
+		logger,
+		tx,
+		workflowName,
+		workflowSeq,
+		recordId,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &WorkflowWithFile{
+		Workflow: *workflow,
+		Files:    files,
+	}, nil
+}
+
+func GetWorkflowsForRecord(
+	ctx context.Context,
+	logger *zap.Logger,
+	argoUrl string,
+	namespace string,
+	recordId string,
+	limit int,
+	skip int,
+	statusFilter []State,
+) (*ArgoWorkflowsResponse, error) {
+	url := createUrlWithQuery(argoUrl, namespace, recordId, limit, skip, statusFilter)
+	workflows, err := httpclient.GetRequest[ArgoWorkflowsResponse](ctx, logger, url, true)
+	if err != nil {
+		logger.Error(
+			"error when fetching workflows from argo",
+			zap.String("url", url),
+			zap.String("recordId", recordId),
+			zap.Error(err),
+		)
+		return nil, err
+	}
+
+	return &workflows, nil
+}
+
+func getSingleWorkflow(
+	ctx context.Context,
+	logger *zap.Logger,
+	argoUrl string,
+	namespace string,
+	workflowName string,
+	ignoreTls bool,
+) (*WorkflowWithStatus, error) {
+	url := createSingleWorkflowUrl(argoUrl, namespace, workflowName)
+	workflow, err := httpclient.GetRequest[WorkflowWithStatus](ctx, logger, url, ignoreTls)
+	if err != nil {
+		logger.Error("error when retrieving argo workflow", zap.String("url", url), zap.Error(err))
+		return nil, err
+	}
+
+	return &workflow, nil
+}
+
+func createSingleWorkflowUrl(
+	argoUrl string,
+	namespace string,
+	workflowName string,
+) string {
+	return fmt.Sprintf("%s/api/v1/workflows/%s/%s", argoUrl, namespace, workflowName)
+}
+
+func createUrlWithQuery(
+	argoUrl string,
+	namespace string,
+	recordId string,
+	limit int,
+	skip int,
+	statusFilter []State,
+) string {
+	listOptionsContinue := ""
+	if skip > 0 {
+		listOptionsContinue = fmt.Sprintf("&listOptions.continue=%d", skip)
+	}
+	statusLabelSelector := ""
+	if len(statusFilter) > 0 {
+		statusLabelSelector = fmt.Sprintf(
+			"&workflows.argoproj.io/phase in (%s)",
+			strings.Join(util.Map(statusFilter, func(s State) string { return string(s) })[:], ","),
+		)
+	}
+
+	params := buildParams(recordId, listOptionsContinue, statusLabelSelector, limit)
+	return fmt.Sprintf("%s/api/v1/workflows/%s?%s", argoUrl, namespace, params)
+}
+
+func buildParams(
+	recordId string,
+	listOptionsContinue string,
+	statusLabelSelector string,
+	limit int,
+) string {
+	fields := "fields=metadata,items.metadata.uid,items.metadata.name,items.metadata.namespace,items.metadata.creationTimestamp,items.metadata.labels,items.metadata.annotations,items.status.phase,items.status.message,items.status.finishedAt,items.status.startedAt,items.status.estimatedDuration,items.status.progress,items.spec.suspend"
+	listOptionLimit := fmt.Sprintf("listOptions.limit=%d", limit)
+	recordIdFieldSelector := fmt.Sprintf(
+		"listOptions.fieldSelector=metadata.name=%s&nameFilter=Contains",
+		recordId,
+	)
+
+	return fmt.Sprintf(
+		"%s&%s&%s",
+		fields,
+		listOptionLimit,
+		recordIdFieldSelector,
+	) + listOptionsContinue + statusLabelSelector
+}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	repository_common "fi.muni.cz/invenio-file-processor/v2/repository/common"
 	"github.com/jackc/pgx/v5"
 	"go.uber.org/zap"
 )
@@ -44,11 +45,9 @@ func CreateWorkflowForRecord(
 	ctx context.Context,
 	logger *zap.Logger,
 	tx pgx.Tx,
-	recordId string,
-	workflowName string,
-	workflowSeq uint64,
+	workflow WorkflowEntity,
 ) (*ExistingWorfklowEntity, error) {
-	logger.Debug("Creating workflow", zap.String("workflow-name", workflowName))
+	logger.Debug("Creating workflow", zap.String("workflow-name", workflow.WorkflowName))
 	SQL := `
   INSERT INTO compchem_workflow(record_id, workflow_name, workflow_record_seq_id)
   VALUES ($1, $2, $3)
@@ -56,7 +55,8 @@ func CreateWorkflowForRecord(
   `
 
 	var id uint64
-	err := tx.QueryRow(ctx, SQL, recordId, workflowName, workflowSeq).Scan(&id)
+	err := tx.QueryRow(ctx, SQL, workflow.RecordId, workflow.WorkflowName, workflow.WorkflowSeqId).
+		Scan(&id)
 	if err != nil {
 		return nil, fmt.Errorf("Error during creation of workflow: %v", err)
 	}
@@ -64,9 +64,28 @@ func CreateWorkflowForRecord(
 	return &ExistingWorfklowEntity{
 		Id: id,
 		WorkflowEntity: WorkflowEntity{
-			RecordId:      recordId,
-			WorkflowName:  workflowName,
-			WorkflowSeqId: workflowSeq,
+			RecordId:      workflow.RecordId,
+			WorkflowName:  workflow.WorkflowName,
+			WorkflowSeqId: workflow.WorkflowSeqId,
 		},
 	}, nil
+}
+
+func GetWorkflowsForRecord(
+	ctx context.Context,
+	logger *zap.Logger,
+	tx pgx.Tx,
+	recordId string,
+) ([]ExistingWorfklowEntity, error) {
+	workflows, err := repository_common.QueryManyTx[ExistingWorfklowEntity](
+		ctx,
+		tx,
+		"SELECT * FROM compchem_workflow WHERE record_id = $1",
+		recordId,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("Error when retrieving workflows for record: %v", err)
+	}
+
+	return workflows, nil
 }

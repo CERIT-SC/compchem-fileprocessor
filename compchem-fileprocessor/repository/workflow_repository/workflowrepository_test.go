@@ -3,6 +3,7 @@ package workflow_repository
 import (
 	"testing"
 
+	repository_common "fi.muni.cz/invenio-file-processor/v2/repository/common"
 	repositorytest "fi.muni.cz/invenio-file-processor/v2/repository/test"
 	"github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/assert"
@@ -52,6 +53,67 @@ func (s *workflowRepositoryTestSuite) TestGetWorkflowSeqId_OneWorkflow_ReturnsTw
 		)
 		assert.NoError(s.PostgresTestSuite.T(), err)
 		assert.Equal(s.PostgresTestSuite.T(), uint64(2), seqId)
+	})
+}
+
+func (s *workflowRepositoryTestSuite) TestCreateWorkflow_NothingViolated_CreatesWorkflow() {
+	ctx := s.Ctx
+	logger := s.Logger
+	t := s.T()
+	recordId := "ej281-k87lh"
+	workflowName := "summarize-document"
+	workflowSeq := uint64(1)
+
+	workflow := WorkflowEntity{
+		WorkflowName:  workflowName,
+		WorkflowSeqId: workflowSeq,
+		RecordId:      recordId,
+	}
+
+	s.PostgresTestSuite.RunInTestTransaction(func(tx pgx.Tx) {
+		wf, err := CreateWorkflowForRecord(ctx, logger, tx, workflow)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, wf.Id)
+		assert.Equal(t, recordId, wf.RecordId)
+		assert.Equal(t, workflowName, wf.WorkflowName)
+		assert.Equal(t, workflowSeq, wf.WorkflowSeqId)
+
+		wf, err = repository_common.QueryOneTx[ExistingWorfklowEntity](
+			ctx,
+			tx,
+			"SELECT * FROM compchem_workflow WHERE id = $1",
+			wf.Id,
+		)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, wf.Id)
+		assert.Equal(t, recordId, wf.RecordId)
+		assert.Equal(t, workflowName, wf.WorkflowName)
+		assert.Equal(t, workflowSeq, wf.WorkflowSeqId)
+	})
+}
+
+func (s *workflowRepositoryTestSuite) TestCreateWorkflow_SameSeqId_ReturnsErrNothingCreated() {
+	ctx := s.Ctx
+	logger := s.Logger
+	t := s.T()
+	recordId := "ej281-k87lh"
+	workflowName := "summarize-document"
+	workflowSeq := uint64(1)
+
+	workflow := WorkflowEntity{
+		WorkflowName:  workflowName,
+		WorkflowSeqId: workflowSeq,
+		RecordId:      recordId,
+	}
+
+	s.PostgresTestSuite.RunInTestTransaction(func(tx pgx.Tx) {
+		wf, err := CreateWorkflowForRecord(ctx, logger, tx, workflow)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, wf.Id)
+
+		wf1, err := CreateWorkflowForRecord(ctx, logger, tx, workflow)
+		assert.Error(t, err)
+		assert.Nil(t, wf1)
 	})
 }
 
