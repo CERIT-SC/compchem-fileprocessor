@@ -135,7 +135,7 @@ func (s *processFileServiceTestSuite) TestCreateWorkflow_WorkflowCreated_DbInCor
 	)
 	assert.NoError(t, err)
 	assert.Equal(t, workflow.WorkflowSeqId, uint64(1))
-	assert.Equal(t, workflow.WorkflowName, wf.Metadata.Name)
+	assert.Equal(t, workflow.WorkflowName, configs[0].Name)
 	assert.Equal(t, workflow.RecordId, "ej26y-ad28j")
 
 	workflowFile, err := repository_common.QueryOne[workflowfile_repository.ExistingWorkflowFileEntity](

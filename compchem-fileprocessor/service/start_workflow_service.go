@@ -67,10 +67,6 @@ func StartWorkflow(
 	return nil
 }
 
-func constructWorkflowName(workflowName string, recordId string, workflowId uint64) string {
-	return fmt.Sprintf("%s-%s-%d", workflowName, recordId, workflowId)
-}
-
 func createWorkflow(
 	ctx context.Context,
 	logger *zap.Logger,
@@ -130,14 +126,12 @@ func addWorkflowToDb(
 		return nil, err
 	}
 
-	fullWfName := constructWorkflowName(workflowName, recordId, seqNumber)
-
 	createdWorkflow, err := workflow_repository.CreateWorkflowForRecord(
 		ctx,
 		logger,
 		tx,
 		recordId,
-		fullWfName,
+		workflowName,
 		seqNumber,
 	)
 	if err != nil {

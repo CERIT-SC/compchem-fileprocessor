@@ -1,6 +1,7 @@
 package argodtos
 
 import (
+	"fmt"
 	"strings"
 
 	"fi.muni.cz/invenio-file-processor/v2/config"
@@ -40,6 +41,10 @@ type Dag struct {
 	Tasks []*Task `json:"tasks"`
 }
 
+func constructWorkflowName(workflowName string, recordId string, workflowId uint64) string {
+	return fmt.Sprintf("%s-%s-%d", workflowName, recordId, workflowId)
+}
+
 func BuildWorkflow(
 	conf config.WorkflowConfig,
 	baseUrl string,
@@ -50,23 +55,25 @@ func BuildWorkflow(
 ) *Workflow {
 	tasks := constructLinearDag(conf.ProcessingTemplates, workflowName, recordId, workflowId)
 
-	return newWorkflow(workflowName, recordId, baseUrl, fileIds, tasks)
+	return newWorkflow(workflowName, recordId, baseUrl, workflowId, fileIds, tasks)
 }
 
 func newWorkflow(workflowName string,
 	recordId string,
 	baseUrl string,
+	workflowId uint64,
 	fileIds []string,
 	processingTasks []*Task,
 ) *Workflow {
+	fullName := constructWorkflowName(workflowName, recordId, workflowId)
 	return &Workflow{
 		ApiVersion: "argoproj.io/v1alpha1",
 		Kind:       "Workflow",
 		Metadata: Metadata{
-			Name: workflowName,
+			Name: fullName,
 		},
 		Spec: Spec{
-			Entrypoint: workflowName,
+			Entrypoint: fullName,
 			Arguments: Arguments{
 				Parameters: []Parameter{
 					{
@@ -85,7 +92,7 @@ func newWorkflow(workflowName string,
 			},
 			Templates: []Template{
 				{
-					Name: workflowName,
+					Name: fullName,
 					Dag: Dag{
 						Tasks: processingTasks,
 					},
@@ -112,7 +119,13 @@ func constructLinearDag(
 			Name:     cfg.Name,
 			Template: cfg.Template,
 		})
-		writeTask := NewWriteWorkflow(recordId, workflowId, task.Name, cfg.Template, worfklowName)
+		writeTask := NewWriteWorkflow(
+			recordId,
+			workflowId,
+			task.Name,
+			cfg.Template,
+			constructWorkflowName(worfklowName, recordId, workflowId),
+		)
 		result = append(result, task, writeTask)
 	}
 

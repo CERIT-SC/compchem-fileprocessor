@@ -9,7 +9,7 @@ TASK_DISCRIMINATOR="$4"
 FILES_DIR="/input"
 
 if [ -z "$BASE_URL" ] || [ -z "$RECORD_ID" ]; then
-  echo "Usage: $0 <base_url> <record_id>"
+  echo "Usage: $0 <base_url> <record_id> <workflow_name> <task_discriminator>"
   exit 1
 fi
 
@@ -19,7 +19,7 @@ if [ ! -d "$FILES_DIR" ]; then
 fi
 
 for FILE_PATH in "$FILES_DIR"/*; do
-  FILE_NAME=$(basename "$FILE_PATH")-$JOB_DISCRIMINATOR-$WORKFLOW_NAME
+  FILE_NAME=$WORKFLOW_NAME-$TASK_DISCRIMINATOR-(basename "$FILE_PATH")
   echo "Uploading file: $FILE_NAME"
 
   # TODO: temporary curl headers, -k -H
