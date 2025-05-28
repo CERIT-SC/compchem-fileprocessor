@@ -6,7 +6,7 @@ import (
 
 	"fi.muni.cz/invenio-file-processor/v2/config"
 	"fi.muni.cz/invenio-file-processor/v2/jsonapi"
-	"fi.muni.cz/invenio-file-processor/v2/routes/workflow/start_workflow_route"
+	start_workflow_route "fi.muni.cz/invenio-file-processor/v2/routes/workflow/start"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/cors"
 	"go.uber.org/zap"

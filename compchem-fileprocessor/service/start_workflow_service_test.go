@@ -13,20 +13,20 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-type processFileServiceTestSuite struct {
+type startWorkflowServiceTestSuite struct {
 	repositorytest.PostgresTestSuite
 }
 
-func (s *processFileServiceTestSuite) SetupSuite() {
+func (s *startWorkflowServiceTestSuite) SetupSuite() {
 	s.PostgresTestSuite.MigratonsPath = "file://../migrations"
 	s.PostgresTestSuite.SetupSuite()
 }
 
-func (s *processFileServiceTestSuite) TearDownSuite() {
+func (s *startWorkflowServiceTestSuite) TearDownSuite() {
 	s.PostgresTestSuite.TearDownSuite()
 }
 
-func (s *processFileServiceTestSuite) TestFindWorkflowConfig_MatchingConfigExists_ConfigFound() {
+func (s *startWorkflowServiceTestSuite) TestFindWorkflowConfig_MatchingConfigExists_ConfigFound() {
 	t := s.PostgresTestSuite.T()
 	configs := []config.WorkflowConfig{
 		{
@@ -39,7 +39,7 @@ func (s *processFileServiceTestSuite) TestFindWorkflowConfig_MatchingConfigExist
 	assert.Equal(t, conf, &configs[0], "returned should be the same object as in setup")
 }
 
-func (s *processFileServiceTestSuite) TestFindWorkflowConfig_NoConfig_ErorrReturned() {
+func (s *startWorkflowServiceTestSuite) TestFindWorkflowConfig_NoConfig_ErorrReturned() {
 	t := s.PostgresTestSuite.T()
 	configs := []config.WorkflowConfig{
 		{
@@ -52,7 +52,7 @@ func (s *processFileServiceTestSuite) TestFindWorkflowConfig_NoConfig_ErorrRetur
 	assert.Error(t, err, "error should have been returned")
 }
 
-func (s *processFileServiceTestSuite) TestGetArgoUrl_ArgsProvided_UrlCorrectlyFormed() {
+func (s *startWorkflowServiceTestSuite) TestGetArgoUrl_ArgsProvided_UrlCorrectlyFormed() {
 	t := s.PostgresTestSuite.T()
 	baseUrl := "https://argo-service.kubernetes.local"
 	namespace := "argo"
@@ -66,7 +66,7 @@ func (s *processFileServiceTestSuite) TestGetArgoUrl_ArgsProvided_UrlCorrectlyFo
 	)
 }
 
-func (s *processFileServiceTestSuite) TestCreateWorkflow_WorkflowCreated_DbInCorrectState() {
+func (s *startWorkflowServiceTestSuite) TestCreateWorkflow_WorkflowCreated_DbInCorrectState() {
 	t := s.PostgresTestSuite.T()
 	configs := []config.WorkflowConfig{
 		{
@@ -166,6 +166,6 @@ func (s *processFileServiceTestSuite) TestCreateWorkflow_WorkflowCreated_DbInCor
 	assert.NoError(t, err)
 }
 
-func TestProcessFileServiceTestSuite(t *testing.T) {
-	suite.Run(t, new(processFileServiceTestSuite))
+func TestStartWorkflowServiceTestSuite(t *testing.T) {
+	suite.Run(t, new(startWorkflowServiceTestSuite))
 }

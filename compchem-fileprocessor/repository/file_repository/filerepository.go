@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	repository_common "fi.muni.cz/invenio-file-processor/v2/repository/common"
+	"fi.muni.cz/invenio-file-processor/v2/util"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
@@ -37,12 +38,16 @@ func FindFilesForWorkflow(
 	const SQL = `
     SELECT f.file_key
     FROM compchem_workflow wf
-    INNER JOIN compchem_workflow_file wff
-    INNER JOIN compchem_file f
-    WHERE wf.record_id = $1 AND wf.workflow_name = $2 AND wf.workflow_seq_id = $3
+    INNER JOIN compchem_workflow_file wff ON wf.id = wff.compchem_workflow_id
+    INNER JOIN compchem_file f ON f.id = wff.compchem_file_id
+    WHERE wf.record_id = $1 AND wf.workflow_name = $2 AND wf.workflow_record_seq_id = $3
     `
 
-	fileKeys, err := repository_common.QueryManyTx[string](
+	type stringWrapper struct {
+		Key string `db:"file_key"`
+	}
+
+	fileKeys, err := repository_common.QueryManyTx[stringWrapper](
 		ctx,
 		tx,
 		SQL,
@@ -55,7 +60,7 @@ func FindFilesForWorkflow(
 		return nil, err
 	}
 
-	return fileKeys, nil
+	return util.Map(fileKeys, func(wrapper stringWrapper) string { return wrapper.Key }), nil
 }
 
 func CreateFile(

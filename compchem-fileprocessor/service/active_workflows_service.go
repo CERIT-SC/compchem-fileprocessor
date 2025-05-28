@@ -3,13 +3,14 @@ package service
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
 
 	"fi.muni.cz/invenio-file-processor/v2/httpclient"
+	repository_common "fi.muni.cz/invenio-file-processor/v2/repository/common"
 	"fi.muni.cz/invenio-file-processor/v2/repository/file_repository"
-	"fi.muni.cz/invenio-file-processor/v2/util"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
 )
@@ -80,15 +81,18 @@ func GetWorkflowDetailed(
 	regex := regexp.MustCompile("-")
 
 	parts := regex.Split(workflowFullName, -1)
-	if len(parts) != 3 {
+	if len(parts) < 4 {
+		tx.Rollback(ctx)
 		return nil, fmt.Errorf(
-			"Wrong format of workflow name, or it may contain more than 3 dashes, dash count: %d",
+			"Wrong format of workflow name, or it may contain less than 3 dashes, dash count: %d",
 			len(parts),
 		)
 	}
-	workflowName := parts[0]
-	recordId := parts[1]
-	workflowSeq, err := strconv.ParseUint(parts[2], 10, 64)
+	workflowName, recordId, workflowSeq, err := getWorkflowIdentifiers(parts)
+	if err != nil {
+		tx.Rollback(ctx)
+		return nil, err
+	}
 
 	files, err := file_repository.FindFilesForWorkflow(
 		ctx,
@@ -99,12 +103,30 @@ func GetWorkflowDetailed(
 		recordId,
 	)
 	if err != nil {
+		tx.Rollback(ctx)
 		return nil, err
 	}
+
+	err = repository_common.CommitTx(ctx, tx, logger)
+	if err != nil {
+		return nil, err
+	}
+
 	return &WorkflowWithFile{
 		Workflow: *workflow,
 		Files:    files,
 	}, nil
+}
+
+func getWorkflowIdentifiers(parts []string) (string, string, uint64, error) {
+	seqId, err := strconv.ParseUint(parts[len(parts)-1], 10, 64)
+	if err != nil {
+		return "", "", uint64(0), err
+	}
+	recordId := fmt.Sprintf("%s-%s", parts[len(parts)-3], parts[len(parts)-2])
+	wfName := strings.Join(parts[0:len(parts)-3], "-")
+
+	return wfName, recordId, seqId, nil
 }
 
 func GetWorkflowsForRecord(
@@ -127,6 +149,10 @@ func GetWorkflowsForRecord(
 			zap.Error(err),
 		)
 		return nil, err
+	}
+
+	if workflows.Items == nil {
+		workflows.Items = []WorkflowWithStatus{}
 	}
 
 	return &workflows, nil
@@ -166,39 +192,28 @@ func createUrlWithQuery(
 	skip int,
 	statusFilter []State,
 ) string {
-	listOptionsContinue := ""
+	params := url.Values{}
+
+	fields := "metadata,items.metadata.uid,items.metadata.name,items.metadata.namespace,items.metadata.creationTimestamp,items.metadata.labels,items.metadata.annotations,items.status.phase,items.status.message,items.status.finishedAt,items.status.startedAt,items.status.estimatedDuration,items.status.progress,items.spec.suspend"
+
+	params.Set("listOptions.limit", strconv.Itoa(limit))
+	params.Set("fields", fields)
+	params.Set("nameFilter", "Contains")
+	params.Set("listOptions.fieldSelector", fmt.Sprintf("metadata.name=%s", recordId))
 	if skip > 0 {
-		listOptionsContinue = fmt.Sprintf("&listOptions.continue=%d", skip)
+		params.Set("listOptions.continue", strconv.Itoa(skip))
 	}
-	statusLabelSelector := ""
+
 	if len(statusFilter) > 0 {
-		statusLabelSelector = fmt.Sprintf(
-			"&workflows.argoproj.io/phase in (%s)",
-			strings.Join(util.Map(statusFilter, func(s State) string { return string(s) })[:], ","),
+		statusValues := make([]string, len(statusFilter))
+		for i, s := range statusFilter {
+			statusValues[i] = string(s)
+		}
+		params.Set(
+			"workflows.argoproj.io/phase in",
+			fmt.Sprintf("(%s)", strings.Join(statusValues, ",")),
 		)
 	}
 
-	params := buildParams(recordId, listOptionsContinue, statusLabelSelector, limit)
-	return fmt.Sprintf("%s/api/v1/workflows/%s?%s", argoUrl, namespace, params)
-}
-
-func buildParams(
-	recordId string,
-	listOptionsContinue string,
-	statusLabelSelector string,
-	limit int,
-) string {
-	fields := "fields=metadata,items.metadata.uid,items.metadata.name,items.metadata.namespace,items.metadata.creationTimestamp,items.metadata.labels,items.metadata.annotations,items.status.phase,items.status.message,items.status.finishedAt,items.status.startedAt,items.status.estimatedDuration,items.status.progress,items.spec.suspend"
-	listOptionLimit := fmt.Sprintf("listOptions.limit=%d", limit)
-	recordIdFieldSelector := fmt.Sprintf(
-		"listOptions.fieldSelector=metadata.name=%s&nameFilter=Contains",
-		recordId,
-	)
-
-	return fmt.Sprintf(
-		"%s&%s&%s",
-		fields,
-		listOptionLimit,
-		recordIdFieldSelector,
-	) + listOptionsContinue + statusLabelSelector
+	return fmt.Sprintf("%s/api/v1/workflows/%s?%s", argoUrl, namespace, params.Encode())
 }
