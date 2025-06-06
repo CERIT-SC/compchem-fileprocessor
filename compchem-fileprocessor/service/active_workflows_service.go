@@ -62,9 +62,8 @@ func GetWorkflowDetailed(
 	argoUrl string,
 	workflowFullName string,
 	namespace string,
-	ignoreTls bool,
 ) (*WorkflowWithFile, error) {
-	workflow, err := getSingleWorkflow(ctx, logger, argoUrl, namespace, workflowFullName, ignoreTls)
+	workflow, err := getSingleWorkflow(ctx, logger, argoUrl, namespace, workflowFullName, true)
 	if err != nil {
 		return nil, err
 	}
