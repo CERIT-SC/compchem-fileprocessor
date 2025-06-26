@@ -2,67 +2,15 @@ package active_workflows
 
 import (
 	"encoding/json"
-	"errors"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"testing"
 
-	"fi.muni.cz/invenio-file-processor/v2/httpclient"
 	"fi.muni.cz/invenio-file-processor/v2/routes/common"
 	"fi.muni.cz/invenio-file-processor/v2/service"
 	"github.com/stretchr/testify/assert"
 )
-
-func TestHandleError(t *testing.T) {
-	tests := []struct {
-		name           string
-		err            error
-		expectedStatus int
-		expectedMsg    string
-	}{
-		{
-			name: "ClientError",
-			err: &httpclient.ClientError{
-				Status:  400,
-				Message: "invalid request",
-			},
-			expectedStatus: http.StatusInternalServerError,
-			expectedMsg:    "Argo could not process request: Error on client side, status: 400, message: invalid request",
-		},
-		{
-			name: "ServerError",
-			err: &httpclient.ServerError{
-				Status:  500,
-				Message: "database connection failed",
-			},
-			expectedStatus: http.StatusServiceUnavailable,
-			expectedMsg:    "Argo might currently be unavailable: Error on server side, status: 500, message: database connection failed",
-		},
-		{
-			name:           "GenericError",
-			err:            errors.New("unexpected error"),
-			expectedStatus: http.StatusInternalServerError,
-			expectedMsg:    "Something went wrong when processing request: unexpected error",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			w := httptest.NewRecorder()
-			r := httptest.NewRequest("GET", "/test", nil)
-
-			handleError(w, r, tt.err)
-
-			assert.Equal(t, tt.expectedStatus, w.Code)
-
-			var response common.ErrorResponse
-			err := json.NewDecoder(w.Body).Decode(&response)
-			assert.NoError(t, err)
-			assert.Equal(t, tt.expectedMsg, response.Message)
-		})
-	}
-}
 
 func TestGetRequestParams(t *testing.T) {
 	tests := []struct {
@@ -73,7 +21,7 @@ func TestGetRequestParams(t *testing.T) {
 		expectedMsg    string
 		expectedLimit  int
 		expectedSkip   int
-		expectedStates []service.State
+		expectedStates []service.Status
 	}{
 		{
 			name:           "Default values with no params",
@@ -82,7 +30,7 @@ func TestGetRequestParams(t *testing.T) {
 			expectError:    false,
 			expectedLimit:  20,
 			expectedSkip:   0,
-			expectedStates: []service.State{},
+			expectedStates: []service.Status{},
 		},
 		{
 			name:     "Custom limit and skip",
@@ -94,7 +42,7 @@ func TestGetRequestParams(t *testing.T) {
 			expectError:    false,
 			expectedLimit:  50,
 			expectedSkip:   10,
-			expectedStates: []service.State{},
+			expectedStates: []service.Status{},
 		},
 		{
 			name:     "Invalid limit (non-numeric)",
@@ -123,7 +71,7 @@ func TestGetRequestParams(t *testing.T) {
 			expectError:    false,
 			expectedLimit:  20,
 			expectedSkip:   0,
-			expectedStates: []service.State{service.StateRunning},
+			expectedStates: []service.Status{service.StateRunning},
 		},
 		{
 			name:     "Valid status filter with multiple states",
@@ -134,7 +82,7 @@ func TestGetRequestParams(t *testing.T) {
 			expectError:   false,
 			expectedLimit: 20,
 			expectedSkip:  0,
-			expectedStates: []service.State{
+			expectedStates: []service.Status{
 				service.StateRunning,
 				service.StatePending,
 				service.StateSucceeded,
@@ -187,7 +135,7 @@ func TestGetRequestParams(t *testing.T) {
 			expectError:   false,
 			expectedLimit: 100,
 			expectedSkip:  50,
-			expectedStates: []service.State{
+			expectedStates: []service.Status{
 				service.StateError,
 				service.StateFailed,
 			},
@@ -201,7 +149,7 @@ func TestGetRequestParams(t *testing.T) {
 			expectError:    false,
 			expectedLimit:  20,
 			expectedSkip:   0,
-			expectedStates: []service.State{},
+			expectedStates: []service.Status{},
 		},
 		{
 			name:     "Status with spaces",
@@ -212,7 +160,7 @@ func TestGetRequestParams(t *testing.T) {
 			expectError:   false,
 			expectedLimit: 20,
 			expectedSkip:  0,
-			expectedStates: []service.State{
+			expectedStates: []service.Status{
 				service.StateRunning,
 				service.StatePending,
 				service.StateError,
@@ -222,7 +170,6 @@ func TestGetRequestParams(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Create request with path value and query params
 			req := httptest.NewRequest("GET", "/test/"+tt.recordId, nil)
 			req.SetPathValue("recordId", tt.recordId)
 

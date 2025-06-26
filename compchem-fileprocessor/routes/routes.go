@@ -6,6 +6,7 @@ import (
 
 	"fi.muni.cz/invenio-file-processor/v2/config"
 	"fi.muni.cz/invenio-file-processor/v2/jsonapi"
+	active_workflows "fi.muni.cz/invenio-file-processor/v2/routes/workflow/active"
 	start_workflow_route "fi.muni.cz/invenio-file-processor/v2/routes/workflow/start"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/cors"
@@ -32,8 +33,9 @@ func AddRoutes(
 
 	mux.Handle(
 		buildPathV1("GET", config.ApiContext, "/health/readiness"),
-		middleware(handleReady()),
+		middleware(handleReady(ctx, pool)),
 	)
+
 	mux.Handle(
 		buildPathV1("POST", config.ApiContext, "/workflows"),
 		middleware(start_workflow_route.PostWorkflowHandler(
@@ -45,13 +47,40 @@ func AddRoutes(
 			config.Workflows,
 		)),
 	)
+
+	mux.Handle(
+		buildPathV1("GET", config.ApiContext, "/workflows/{recordId}/list"),
+		middleware(
+			active_workflows.ActiveWorkflowsListHandler(
+				ctx,
+				logger,
+				pool,
+				config.ArgoApi.Url,
+				config.ArgoApi.Namespace,
+			),
+		),
+	)
+
+	mux.Handle(
+		buildPathV1("GET", config.ApiContext, "/workflows/{workflowName}/detail"),
+		middleware(
+			active_workflows.WorkflowDetailHandler(
+				ctx,
+				logger,
+				pool,
+				config.ArgoApi.Url,
+				config.ArgoApi.Namespace,
+			),
+		),
+	)
 }
 
-func handleReady() http.Handler {
+func handleReady(ctx context.Context, pool *pgxpool.Pool) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		}
+		// TODO: add ping to database to make sure API is ready
 
 		type readyResponse struct {
 			Ready bool `json:"ready"`

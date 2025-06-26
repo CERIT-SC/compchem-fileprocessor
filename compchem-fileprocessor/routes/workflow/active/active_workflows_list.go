@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"strings"
 
-	"fi.muni.cz/invenio-file-processor/v2/httpclient"
 	"fi.muni.cz/invenio-file-processor/v2/jsonapi"
 	"fi.muni.cz/invenio-file-processor/v2/routes/common"
 	"fi.muni.cz/invenio-file-processor/v2/service"
@@ -21,7 +20,7 @@ type listParams struct {
 	recordId     string
 	skip         int
 	limit        int
-	statusFilter []service.State
+	statusFilter []service.Status
 }
 
 func ActiveWorkflowsListHandler(
@@ -67,17 +66,15 @@ func getRequestParams(w http.ResponseWriter, r *http.Request) (*listParams, erro
 
 	params := r.URL.Query()
 	statusParam := params.Get("status")
-	stateFilter := []service.State{}
+	stateFilter := []service.Status{}
 	var err error
 
-	if statusParam == "" {
-		stateFilter, err = buildStateFilter(statusParam)
-		if err != nil {
-			jsonapi.Encode(w, r, http.StatusBadRequest, common.ErrorResponse{
-				Message: err.Error(),
-			})
-			return nil, err
-		}
+	stateFilter, err = buildStateFilter(statusParam)
+	if err != nil {
+		jsonapi.Encode(w, r, http.StatusBadRequest, common.ErrorResponse{
+			Message: err.Error(),
+		})
+		return nil, err
 	}
 
 	limitString := params.Get("limit")
@@ -107,30 +104,9 @@ func getRequestParams(w http.ResponseWriter, r *http.Request) (*listParams, erro
 	}, nil
 }
 
-func handleError(w http.ResponseWriter, r *http.Request, err error) {
-	var clientErr *httpclient.ClientError
-	var serverErr *httpclient.ServerError
-	if errors.As(err, &clientErr) {
-		jsonapi.Encode(w, r, http.StatusInternalServerError, common.ErrorResponse{
-			Message: fmt.Errorf("Argo could not process request: %v", err).Error(),
-		})
-		return
-	} else if errors.As(err, serverErr) {
-		jsonapi.Encode(w, r, http.StatusServiceUnavailable, common.ErrorResponse{
-			Message: fmt.Errorf("Argo might currently be unavailable: %v", err).Error(),
-		})
-		return
-	} else {
-		jsonapi.Encode(w, r, http.StatusInternalServerError, common.ErrorResponse{
-			Message: fmt.Errorf("Something went wrong when processing request: %v", err).Error(),
-		})
-		return
-	}
-}
-
-func buildStateFilter(statuses string) ([]service.State, error) {
+func buildStateFilter(statuses string) ([]service.Status, error) {
 	if statuses == "" {
-		return []service.State{}, nil
+		return []service.Status{}, nil
 	}
 
 	re := regexp.MustCompile(`\([A-Za-z]+(?:,\s*[A-Za-z]+)*\)`)
@@ -142,17 +118,18 @@ func buildStateFilter(statuses string) ([]service.State, error) {
 	}
 
 	slice := statuses[1 : len(statuses)-1]
-	parsed := strings.Split(slice, ",")
+	noWhitespaces := strings.ReplaceAll(slice, " ", "")
+	parsed := strings.Split(noWhitespaces, ",")
 
-	stateMap := map[string]service.State{
+	stateMap := map[string]service.Status{
 		"Error":     service.StateError,
 		"Pending":   service.StatePending,
-		"Failure":   service.StateFailed,
+		"Failed":    service.StateFailed,
 		"Running":   service.StateRunning,
 		"Succeeded": service.StateSucceeded,
 	}
 
-	states := []service.State{}
+	states := []service.Status{}
 
 	for _, stateString := range parsed {
 		state, ok := stateMap[stateString]

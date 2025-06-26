@@ -15,7 +15,7 @@ import (
 	"go.uber.org/zap"
 )
 
-type WorkflowWithFile struct {
+type WorkflowWithFiles struct {
 	Workflow WorkflowWithStatus `json:"workflow"`
 	Files    []string           `json:"files"`
 }
@@ -45,14 +45,14 @@ type ListMetadata struct {
 	Continue string `json:"continue"`
 }
 
-type State string
+type Status string
 
 const (
-	StateError     State = "Error"
-	StatePending   State = "Pending"
-	StateRunning   State = "Running"
-	StateSucceeded State = "Succeeded"
-	StateFailed    State = "Failed"
+	StateError     Status = "Error"
+	StatePending   Status = "Pending"
+	StateRunning   Status = "Running"
+	StateSucceeded Status = "Succeeded"
+	StateFailed    Status = "Failed"
 )
 
 func GetWorkflowDetailed(
@@ -60,9 +60,9 @@ func GetWorkflowDetailed(
 	logger *zap.Logger,
 	pool *pgxpool.Pool,
 	argoUrl string,
-	workflowFullName string,
 	namespace string,
-) (*WorkflowWithFile, error) {
+	workflowFullName string,
+) (*WorkflowWithFiles, error) {
 	workflow, err := getSingleWorkflow(ctx, logger, argoUrl, namespace, workflowFullName, true)
 	if err != nil {
 		return nil, err
@@ -111,7 +111,7 @@ func GetWorkflowDetailed(
 		return nil, err
 	}
 
-	return &WorkflowWithFile{
+	return &WorkflowWithFiles{
 		Workflow: *workflow,
 		Files:    files,
 	}, nil
@@ -136,7 +136,7 @@ func GetWorkflowsForRecord(
 	recordId string,
 	limit int,
 	skip int,
-	statusFilter []State,
+	statusFilter []Status,
 ) (*ArgoWorkflowsResponse, error) {
 	url := createUrlWithQuery(argoUrl, namespace, recordId, limit, skip, statusFilter)
 	workflows, err := httpclient.GetRequest[ArgoWorkflowsResponse](ctx, logger, url, true)
@@ -189,7 +189,7 @@ func createUrlWithQuery(
 	recordId string,
 	limit int,
 	skip int,
-	statusFilter []State,
+	statusFilter []Status,
 ) string {
 	params := url.Values{}
 

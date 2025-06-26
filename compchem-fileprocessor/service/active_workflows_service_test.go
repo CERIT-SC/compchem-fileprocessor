@@ -56,7 +56,7 @@ func (s *activeWorkflowServiceTestSuite) TestListWorkflows_ReturnsFiveWorkflows_
 	recordId := "p8175"
 	limit := 5
 	skip := 0
-	statusFilter := []State{StateError, StateFailed, StatePending, StateRunning, StateSucceeded}
+	statusFilter := []Status{StateError, StateFailed, StatePending, StateRunning, StateSucceeded}
 
 	result, err := GetWorkflowsForRecord(
 		ctx,
@@ -124,7 +124,7 @@ func (s *activeWorkflowServiceTestSuite) TestListWorkflows_WithContinue_Successf
 	recordId := "ew6jd-p8175"
 	limit := 5
 	skip := 5
-	statusFilter := []State{StateError, StateFailed, StateSucceeded, StateRunning, StatePending}
+	statusFilter := []Status{StateError, StateFailed, StateSucceeded, StateRunning, StatePending}
 
 	result, err := GetWorkflowsForRecord(
 		ctx,
@@ -208,7 +208,7 @@ func (s *activeWorkflowServiceTestSuite) TestListWorkflows_NoneReturned_EmptyRes
 	recordId := "nonexistent-record"
 	limit := 10
 	skip := 0
-	statusFilter := []State{StateSucceeded, StateFailed}
+	statusFilter := []Status{StateSucceeded, StateFailed}
 
 	result, err := GetWorkflowsForRecord(
 		ctx,
@@ -281,8 +281,8 @@ func (s *activeWorkflowServiceTestSuite) TestGetWorkflowDetail_WorkflowExists_Re
 		logger,
 		s.Pool,
 		server.URL,
-		workflowFullName,
 		namespace,
+		workflowFullName,
 	)
 
 	assert.NoError(s.T(), err)
@@ -326,8 +326,8 @@ func (s *activeWorkflowServiceTestSuite) TestGetWorkflowDetail_WorkflowNotFound_
 		logger,
 		s.Pool,
 		server.URL,
-		workflowFullName,
 		namespace,
+		workflowFullName,
 	)
 
 	assert.Error(s.T(), err)
