@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -15,7 +16,7 @@ func TestHealthHandler_GetRequest_OkResponse(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/health/readiness", nil)
 	rec := httptest.NewRecorder()
 
-	handler := handleReady()
+	handler := handleReady(context.Background(), nil)
 	handler.ServeHTTP(rec, req)
 
 	res := rec.Result()
@@ -40,7 +41,7 @@ func TestHealthHandler_PostRequest_InvalidHttpMethod(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/health/readiness", nil)
 	rec := httptest.NewRecorder()
 
-	handler := handleReady()
+	handler := handleReady(context.Background(), nil)
 	handler.ServeHTTP(rec, req)
 
 	res := rec.Result()
