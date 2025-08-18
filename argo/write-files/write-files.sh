@@ -19,7 +19,7 @@ if [ ! -d "$FILES_DIR" ]; then
 fi
 
 for FILE_PATH in "$FILES_DIR"/*; do
-  FILE_NAME=$WORKFLOW_NAME-$TASK_DISCRIMINATOR-(basename "$FILE_PATH")
+  FILE_NAME=$WORKFLOW_NAME-$TASK_DISCRIMINATOR-$(basename "$FILE_PATH")
   echo "Uploading file: $FILE_NAME"
 
   # TODO: temporary curl headers, -k -H
