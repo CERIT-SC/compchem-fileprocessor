@@ -7,6 +7,7 @@ import (
 	"fi.muni.cz/invenio-file-processor/v2/config"
 	"fi.muni.cz/invenio-file-processor/v2/jsonapi"
 	active_workflows "fi.muni.cz/invenio-file-processor/v2/routes/workflow/active"
+	"fi.muni.cz/invenio-file-processor/v2/routes/workflow/available"
 	start_workflow_route "fi.muni.cz/invenio-file-processor/v2/routes/workflow/start"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/cors"
@@ -24,7 +25,7 @@ func AddRoutes(
 
 	middleware := func(h http.Handler) http.Handler {
 		h = cors.Default().Handler(h)
-		h = loggingMiddleware(logger)(h)
+		h = loggingMiddleware(logger, h)
 
 		// TBD auth?
 
@@ -32,25 +33,25 @@ func AddRoutes(
 	}
 
 	mux.Handle(
-		buildPathV1("GET", config.ApiContext, "/health/readiness"),
-		middleware(handleReady(ctx, pool)),
+		buildPathV1(config.ApiContext, "/health/readiness"),
+		middleware(methodHandler(http.MethodGet, handleReady(ctx, pool))),
 	)
 
 	mux.Handle(
-		buildPathV1("POST", config.ApiContext, "/workflows"),
-		middleware(start_workflow_route.PostWorkflowHandler(
+		buildPathV1(config.ApiContext, "/workflows"),
+		middleware(methodHandler(http.MethodPost, start_workflow_route.PostWorkflowHandler(
 			ctx,
 			logger,
 			pool,
 			config.ArgoApi.Url,
 			config.CompchemApi.Url,
 			config.Workflows,
-		)),
+		))),
 	)
 
 	mux.Handle(
-		buildPathV1("GET", config.ApiContext, "/workflows/{recordId}/list"),
-		middleware(
+		buildPathV1(config.ApiContext, "/workflows/{recordId}/list"),
+		middleware(methodHandler(http.MethodPost,
 			active_workflows.ActiveWorkflowsListHandler(
 				ctx,
 				logger,
@@ -58,12 +59,12 @@ func AddRoutes(
 				config.ArgoApi.Url,
 				config.ArgoApi.Namespace,
 			),
-		),
+		)),
 	)
 
 	mux.Handle(
-		buildPathV1("GET", config.ApiContext, "/workflows/{workflowName}/detail"),
-		middleware(
+		buildPathV1(config.ApiContext, "/workflows/{workflowName}/detail"),
+		middleware(methodHandler(http.MethodGet,
 			active_workflows.WorkflowDetailHandler(
 				ctx,
 				logger,
@@ -71,8 +72,28 @@ func AddRoutes(
 				config.ArgoApi.Url,
 				config.ArgoApi.Namespace,
 			),
+		)),
+	)
+
+	mux.Handle(
+		buildPathV1(config.ApiContext, "/workflows/available"),
+		middleware(
+			methodHandler(
+				http.MethodPost,
+				available.AvailableWorkflowsHandler(ctx, logger, config.Workflows),
+			),
 		),
 	)
+}
+
+func methodHandler(allowedMethod string, handler http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != allowedMethod {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		handler.ServeHTTP(w, r)
+	})
 }
 
 func handleReady(ctx context.Context, pool *pgxpool.Pool) http.Handler {
@@ -93,6 +114,6 @@ func handleReady(ctx context.Context, pool *pgxpool.Pool) http.Handler {
 	})
 }
 
-func buildPathV1(requestType string, apiContext string, path string) string {
-	return requestType + " " + apiContext + "/v1" + path
+func buildPathV1(apiContext string, path string) string {
+	return apiContext + "/v1" + path
 }

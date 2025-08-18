@@ -21,21 +21,19 @@ func (rw *responseWriter) WriteHeader(code int) {
 	rw.ResponseWriter.WriteHeader(code)
 }
 
-func loggingMiddleware(logger *zap.Logger) func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			start := time.Now()
+func loggingMiddleware(logger *zap.Logger, h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
 
-			ww := newResponseWriter(w)
+		ww := newResponseWriter(w)
 
-			next.ServeHTTP(ww, r)
+		h.ServeHTTP(w, r)
 
-			logger.Info("HTTP request",
-				zap.String("method", r.Method),
-				zap.String("path", r.URL.Path),
-				zap.Int("status", ww.status),
-				zap.Duration("duration", time.Since(start)),
-			)
-		})
-	}
+		logger.Info("HTTP request",
+			zap.String("method", r.Method),
+			zap.String("path", r.URL.Path),
+			zap.Int("status", ww.status),
+			zap.Duration("duration", time.Since(start)),
+		)
+	})
 }

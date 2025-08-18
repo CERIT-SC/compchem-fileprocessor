@@ -28,12 +28,6 @@ func PostWorkflowHandler(
 	configs []config.WorkflowConfig,
 ) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		err := common.ValidateMethod(w, r, http.MethodPost)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusMethodNotAllowed)
-			return
-		}
-
 		reqBody, err := common.GetValidRequestBody(w, r, validateBody)
 		if err != nil {
 			logger.Error("Requst body invalid", zap.Error(err))

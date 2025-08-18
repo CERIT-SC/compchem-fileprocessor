@@ -20,14 +20,8 @@ func AvailableWorkflowsHandler(
 	configs []config.WorkflowConfig,
 ) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		logger.Info("Received request for available workflows")
 		_, cancel := context.WithTimeout(ctx, 10*time.Second)
 		defer cancel()
-		err := common.ValidateMethod(w, r, http.MethodPost)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusMethodNotAllowed)
-			return
-		}
 
 		reqBody, err := common.GetValidRequestBody(w, r, validateBody)
 		if err != nil {

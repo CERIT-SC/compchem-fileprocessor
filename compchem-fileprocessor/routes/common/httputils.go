@@ -11,18 +11,6 @@ type ErrorResponse struct {
 	Message string `json:"message"`
 }
 
-func ValidateMethod(
-	w http.ResponseWriter,
-	r *http.Request,
-	expectedMethod string,
-) error {
-	if r.Method != expectedMethod {
-		return fmt.Errorf("Method not allowed %s", r.Method)
-	}
-
-	return nil
-}
-
 func GetValidRequestBody[T any](
 	w http.ResponseWriter,
 	r *http.Request,

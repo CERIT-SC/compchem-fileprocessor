@@ -24,6 +24,7 @@ func convertMapToAvailableWorkflows(
 	for _, workflow := range configs {
 		if eligibleFiles, isPresent := mimeTypeMap[workflow.Filetype]; isPresent {
 			workflows = append(workflows, availabledtos.AvailableWorkflow{
+				Name:     workflow.Name,
 				Mimetype: workflow.Filetype,
 				Files:    eligibleFiles,
 			})

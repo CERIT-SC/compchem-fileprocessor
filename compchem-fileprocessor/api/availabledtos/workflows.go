@@ -14,6 +14,7 @@ type AvailableWorkflowsResponse struct {
 }
 
 type AvailableWorkflow struct {
+	Name     string   `json:"name"`
 	Mimetype string   `json:"mimetype"`
 	Files    []string `json:"files"`
 }

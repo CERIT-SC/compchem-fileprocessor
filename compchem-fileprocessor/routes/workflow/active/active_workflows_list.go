@@ -31,12 +31,6 @@ func ActiveWorkflowsListHandler(
 	namespace string,
 ) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		err := common.ValidateMethod(w, r, http.MethodGet)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusMethodNotAllowed)
-			return
-		}
-
 		params, err := getRequestParams(w, r)
 		if err != nil {
 			return
