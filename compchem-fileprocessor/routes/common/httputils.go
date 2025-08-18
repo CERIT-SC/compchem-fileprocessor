@@ -26,7 +26,7 @@ func GetValidRequestBody[T any](
 
 	if err := validateBody(&reqBody); err != nil {
 		jsonapi.Encode(w, r, 400, ErrorResponse{
-			Message: "Invalid request body, missing: " + err.Error(),
+			Message: "Invalid request body, " + err.Error(),
 		})
 		return nil, fmt.Errorf("Validate erorr: %v", err)
 	}
