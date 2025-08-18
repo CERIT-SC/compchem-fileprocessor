@@ -20,7 +20,7 @@ import (
 )
 
 type File struct {
-	FileName string `json:"fileName"`
+	FileName string `json:"key"`
 	Mimetype string `json:"mimetype"`
 }
 
@@ -36,6 +36,7 @@ func StartWorkflow(
 	pool *pgxpool.Pool,
 	argoUrl string,
 	baseUrl string,
+	name string,
 	recordId string,
 	files []File,
 	configs []config.WorkflowConfig,
@@ -45,6 +46,7 @@ func StartWorkflow(
 		logger,
 		pool,
 		configs,
+		name,
 		recordId,
 		files,
 		baseUrl,
@@ -72,11 +74,12 @@ func createWorkflow(
 	logger *zap.Logger,
 	pool *pgxpool.Pool,
 	configs []config.WorkflowConfig,
+	name string,
 	recordId string,
 	files []File,
 	baseUrl string,
 ) (*argodtos.Workflow, error) {
-	conf, err := findWorkflowConfig(configs, files[0].Mimetype)
+	conf, err := findWorkflowConfig(configs, name, files)
 	if err != nil {
 		return nil, err
 	}
@@ -208,15 +211,34 @@ func createWorkflowFile(
 
 func findWorkflowConfig(
 	configs []config.WorkflowConfig,
-	filetype string,
+	name string,
+	files []File,
 ) (*config.WorkflowConfig, error) {
 	for _, conf := range configs {
-		if conf.Filetype == filetype {
+		if conf.Name == name {
+			if err := validateFiles(conf.Filetype, files); err != nil {
+				return nil, err
+			}
 			return &conf, nil
 		}
 	}
 
-	return nil, errors.New("No configuration found for: " + filetype)
+	return nil, errors.New("No workflow with name: " + name)
+}
+
+func validateFiles(
+	mimetype string,
+	files []File,
+) error {
+	for _, file := range files {
+		if file.Mimetype != mimetype {
+			return errors.New(
+				"Workflow requires: " + mimetype + " ,found file with type: " + file.Mimetype,
+			)
+		}
+	}
+
+	return nil
 }
 
 func submitWorkflow(

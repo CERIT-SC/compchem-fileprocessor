@@ -30,11 +30,12 @@ func (s *startWorkflowServiceTestSuite) TestFindWorkflowConfig_MatchingConfigExi
 	t := s.PostgresTestSuite.T()
 	configs := []config.WorkflowConfig{
 		{
+			Name:     "text-processing",
 			Filetype: "txt",
 		},
 	}
 
-	conf, err := findWorkflowConfig(configs, "txt")
+	conf, err := findWorkflowConfig(configs, "text-processing", []File{})
 	assert.NoError(t, err, "error should be nil because config exists")
 	assert.Equal(t, conf, &configs[0], "returned should be the same object as in setup")
 }
@@ -43,11 +44,12 @@ func (s *startWorkflowServiceTestSuite) TestFindWorkflowConfig_NoConfig_ErorrRet
 	t := s.PostgresTestSuite.T()
 	configs := []config.WorkflowConfig{
 		{
+			Name:     "image-processing",
 			Filetype: "png",
 		},
 	}
 
-	conf, err := findWorkflowConfig(configs, "txt")
+	conf, err := findWorkflowConfig(configs, "text-processing", []File{})
 	assert.Nil(t, conf, "config should be null")
 	assert.Error(t, err, "error should have been returned")
 }
@@ -89,6 +91,7 @@ func (s *startWorkflowServiceTestSuite) TestCreateWorkflow_WorkflowCreated_DbInC
 		s.PostgresTestSuite.Logger,
 		pool,
 		configs,
+		"count-words",
 		"ej26y-ad28j",
 		[]File{
 			{

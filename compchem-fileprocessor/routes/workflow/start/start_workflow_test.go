@@ -13,7 +13,7 @@ import (
 func TestValidateBody_MissingBody_ReturnsError(t *testing.T) {
 	reader := strings.NewReader(`
   {
-    "fileName": "test",
+    "key": "test",
     "mimetype": "test"
   }
   `)
@@ -35,15 +35,17 @@ func TestValidateBody_OkBody_ReturnsCorrectBody(t *testing.T) {
 				Mimetype: "test",
 			},
 		},
+		Name:     "count-words",
 		RecordId: "ejw6-7fpy",
 	}
 
 	reader := strings.NewReader(`
   {
     "recordId": "ejw6-7fpy",
+    "name": "count-words",
     "files": [
       {
-        "fileName": "test",
+        "key": "test",
         "mimetype": "test"
       }
     ]

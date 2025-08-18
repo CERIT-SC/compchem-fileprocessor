@@ -27,3 +27,8 @@ workflows:
     processing-templates:
       - name: count-words-template
         template: count-words
+  - name: count-words-json
+    filetype: application/json
+    processing-templates:
+      - name: count-words-template
+        template: count-words

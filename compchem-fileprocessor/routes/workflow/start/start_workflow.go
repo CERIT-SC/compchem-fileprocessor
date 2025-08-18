@@ -15,8 +15,9 @@ import (
 )
 
 type requestBody struct {
-	Files    []service.File `json:"files"`
+	Name     string         `json:"name"`
 	RecordId string         `json:"recordId"`
+	Files    []service.File `json:"files"`
 }
 
 func PostWorkflowHandler(
@@ -40,6 +41,7 @@ func PostWorkflowHandler(
 			pool,
 			argoUrl,
 			baseUrl,
+			reqBody.Name,
 			reqBody.RecordId,
 			reqBody.Files,
 			configs,
@@ -65,6 +67,10 @@ func validateBody(body *requestBody) error {
 
 	if body.RecordId == "" {
 		errors = append(errors, "recordId")
+	}
+
+	if body.Name == "" {
+		errors = append(errors, "name")
 	}
 
 	if len(body.Files) > 0 {
