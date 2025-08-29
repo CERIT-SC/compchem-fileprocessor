@@ -183,6 +183,7 @@ func createSingleWorkflowUrl(
 	return fmt.Sprintf("%s/api/v1/workflows/%s/%s", argoUrl, namespace, workflowName)
 }
 
+// TODO: add tests!!!
 func createUrlWithQuery(
 	argoUrl string,
 	namespace string,
@@ -209,8 +210,8 @@ func createUrlWithQuery(
 			statusValues[i] = string(s)
 		}
 		params.Set(
-			"workflows.argoproj.io/phase in",
-			fmt.Sprintf("(%s)", strings.Join(statusValues, ",")),
+			"listOptions.labelSelector",
+			fmt.Sprintf("workflows.argoproj.io/phase in (%s)", strings.Join(statusValues, ",")),
 		)
 	}
 

@@ -51,7 +51,7 @@ func AddRoutes(
 
 	mux.Handle(
 		buildPathV1(config.ApiContext, "/workflows/{recordId}/list"),
-		middleware(methodHandler(http.MethodPost,
+		middleware(methodHandler(http.MethodGet,
 			active_workflows.ActiveWorkflowsListHandler(
 				ctx,
 				logger,
