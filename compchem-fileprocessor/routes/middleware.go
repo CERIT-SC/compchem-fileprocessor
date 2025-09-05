@@ -27,7 +27,7 @@ func loggingMiddleware(logger *zap.Logger, h http.Handler) http.Handler {
 
 		ww := newResponseWriter(w)
 
-		h.ServeHTTP(w, r)
+		h.ServeHTTP(ww, r)
 
 		logger.Info("HTTP request",
 			zap.String("method", r.Method),
