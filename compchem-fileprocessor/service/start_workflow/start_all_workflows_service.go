@@ -6,6 +6,7 @@ import (
 
 	"fi.muni.cz/invenio-file-processor/v2/api/argodtos"
 	"fi.muni.cz/invenio-file-processor/v2/config"
+	repository_common "fi.muni.cz/invenio-file-processor/v2/repository/common"
 	"fi.muni.cz/invenio-file-processor/v2/util"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -95,6 +96,7 @@ func createWorkflowsWithAllConfigs(
 			tx.Rollback(ctx)
 			return nil, err
 		}
+
 		workflow := argodtos.BuildWorkflow(
 			configAndFiles.config,
 			baseUrl,
@@ -105,6 +107,11 @@ func createWorkflowsWithAllConfigs(
 		)
 
 		workflows = append(workflows, workflow)
+	}
+
+	err = repository_common.CommitTx(ctx, tx, logger)
+	if err != nil {
+		return nil, err
 	}
 
 	return workflows, nil

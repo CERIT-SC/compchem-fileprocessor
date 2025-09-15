@@ -18,7 +18,7 @@ type startAllWorkflowsTestSuite struct {
 }
 
 func (s *startAllWorkflowsTestSuite) SetupSuite() {
-	s.PostgresTestSuite.MigratonsPath = "file://../migrations"
+	s.PostgresTestSuite.MigratonsPath = "file://../../migrations"
 	s.PostgresTestSuite.SetupSuite()
 }
 
@@ -206,7 +206,7 @@ func (s *startAllWorkflowsTestSuite) TestCreateWorkflowsWithAllConfigs_TwoConfig
 	assert.NoError(t, err)
 	assert.Len(t, workflows, 2, "workflows returned should be 2")
 	assert.Equal(t, "count-words-ej26y-ad28j-1", workflows[0].Metadata.Name)
-	assert.Equal(t, "compress-images-ej26y-ad28j-1", workflows[1].Metadata.Name)
+	assert.Equal(t, "compress-images-ej26y-ad28j-2", workflows[1].Metadata.Name)
 
 	file, err := repository_common.QueryOne[file_repository.ExistingCompchemFile](
 		ctx,

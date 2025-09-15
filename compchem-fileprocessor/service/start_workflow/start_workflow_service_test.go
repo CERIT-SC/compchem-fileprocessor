@@ -18,7 +18,7 @@ type startWorkflowServiceTestSuite struct {
 }
 
 func (s *startWorkflowServiceTestSuite) SetupSuite() {
-	s.PostgresTestSuite.MigratonsPath = "file://../migrations"
+	s.PostgresTestSuite.MigratonsPath = "file://../../migrations"
 	s.PostgresTestSuite.SetupSuite()
 }
 

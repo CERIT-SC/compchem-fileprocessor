@@ -108,7 +108,18 @@ func addSingleWorkflowToDb(
 		return nil, err
 	}
 
-	return addWorkflowInternal(ctx, logger, tx, recordId, files, workflowName)
+	workflow, err := addWorkflowInternal(ctx, logger, tx, recordId, files, workflowName)
+	if err != nil {
+		tx.Rollback(ctx)
+		return nil, err
+	}
+
+	err = repository_common.CommitTx(ctx, tx, logger)
+	if err != nil {
+		return nil, err
+	}
+
+	return workflow, nil
 }
 
 func addWorkflowInternal(
@@ -146,11 +157,6 @@ func addWorkflowInternal(
 			tx.Rollback(ctx)
 			return nil, err
 		}
-	}
-
-	err = repository_common.CommitTx(ctx, tx, logger)
-	if err != nil {
-		return nil, err
 	}
 
 	return createdWorkflow, nil

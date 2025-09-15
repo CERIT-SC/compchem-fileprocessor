@@ -28,14 +28,14 @@ func TestValidateAllBody_MissingBody_ReturnsError(t *testing.T) {
 }
 
 func TestValidateAllBody_OkBody_BodyIsCorrectlyMapped(t *testing.T) {
-	expected := startRequestBody{
+	expected := startAllRequestBody{
 		Files: []startworkflow_service.File{
 			{
 				FileName: "test",
 				Mimetype: "test",
 			},
 		},
-		Name: "count-words",
+		RecordId: "ejw6-7fpy",
 	}
 
 	reader := strings.NewReader(`
@@ -54,7 +54,7 @@ func TestValidateAllBody_OkBody_BodyIsCorrectlyMapped(t *testing.T) {
 
 	request := httptest.NewRequest("POST", "https://localhost:8080", reader)
 
-	reqBody, err := common.GetValidRequestBody(recorder, request, validateStartBody)
+	reqBody, err := common.GetValidRequestBody(recorder, request, validateStartAllBody)
 	assert.Nil(t, err, "expected error returned")
 	assert.Equal(t, expected, *reqBody, "expected same body as in test")
 }
