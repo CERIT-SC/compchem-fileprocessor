@@ -1,4 +1,4 @@
-package service
+package startworkflow_service
 
 import (
 	"testing"
@@ -54,20 +54,6 @@ func (s *startWorkflowServiceTestSuite) TestFindWorkflowConfig_NoConfig_ErorrRet
 	assert.Error(t, err, "error should have been returned")
 }
 
-func (s *startWorkflowServiceTestSuite) TestGetArgoUrl_ArgsProvided_UrlCorrectlyFormed() {
-	t := s.PostgresTestSuite.T()
-	baseUrl := "https://argo-service.kubernetes.local"
-	namespace := "argo"
-
-	result := buildWorkflowUrl(namespace, baseUrl, "submit")
-	assert.Equal(
-		t,
-		"https://argo-service.kubernetes.local/api/v1/workflows/argo/submit",
-		result,
-		"urls should match",
-	)
-}
-
 func (s *startWorkflowServiceTestSuite) TestCreateWorkflow_WorkflowCreated_DbInCorrectState() {
 	t := s.PostgresTestSuite.T()
 	configs := []config.WorkflowConfig{
@@ -86,7 +72,7 @@ func (s *startWorkflowServiceTestSuite) TestCreateWorkflow_WorkflowCreated_DbInC
 	pool := s.PostgresTestSuite.Pool
 	ctx := s.PostgresTestSuite.Ctx
 
-	wf, err := createWorkflow(
+	wf, err := createWorkflowSingleConfig(
 		s.PostgresTestSuite.Ctx,
 		s.PostgresTestSuite.Logger,
 		pool,

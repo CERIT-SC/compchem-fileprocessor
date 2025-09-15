@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestValidateBody_MissingBody_ReturnsError(t *testing.T) {
+func TestValidateAllBody_MissingBody_ReturnsError(t *testing.T) {
 	reader := strings.NewReader(`
   {
     "key": "test",
@@ -22,12 +22,12 @@ func TestValidateBody_MissingBody_ReturnsError(t *testing.T) {
 
 	request := httptest.NewRequest("POST", "https://localhost:8080", reader)
 
-	reqBody, err := common.GetValidRequestBody(recorder, request, validateStartBody)
+	reqBody, err := common.GetValidRequestBody(recorder, request, validateStartAllBody)
 	assert.Nil(t, reqBody, "body should be nil")
 	assert.Error(t, err, "expected error returned")
 }
 
-func TestValidateBody_OkBody_ReturnsCorrectBody(t *testing.T) {
+func TestValidateAllBody_OkBody_BodyIsCorrectlyMapped(t *testing.T) {
 	expected := startRequestBody{
 		Files: []startworkflow_service.File{
 			{
@@ -35,14 +35,12 @@ func TestValidateBody_OkBody_ReturnsCorrectBody(t *testing.T) {
 				Mimetype: "test",
 			},
 		},
-		Name:     "count-words",
-		RecordId: "ejw6-7fpy",
+		Name: "count-words",
 	}
 
 	reader := strings.NewReader(`
   {
     "recordId": "ejw6-7fpy",
-    "name": "count-words",
     "files": [
       {
         "key": "test",

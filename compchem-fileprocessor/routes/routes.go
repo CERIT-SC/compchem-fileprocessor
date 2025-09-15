@@ -50,6 +50,18 @@ func AddRoutes(
 	)
 
 	mux.Handle(
+		buildPathV1(config.ApiContext, "/workflows/all"),
+		middleware(methodHandler(http.MethodPost, start_workflow_route.PostAllWorkflowsHandler(
+			ctx,
+			logger,
+			pool,
+			config.ArgoApi.Url,
+			config.CompchemApi.Url,
+			config.Workflows,
+		))),
+	)
+
+	mux.Handle(
 		buildPathV1(config.ApiContext, "/workflows/{recordId}/list"),
 		middleware(methodHandler(http.MethodGet,
 			active_workflows.ActiveWorkflowsListHandler(

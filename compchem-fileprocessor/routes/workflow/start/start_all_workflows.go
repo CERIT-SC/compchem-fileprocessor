@@ -14,13 +14,12 @@ import (
 	"go.uber.org/zap"
 )
 
-type startRequestBody struct {
-	Name     string                       `json:"name"`
+type startAllRequestBody struct {
 	RecordId string                       `json:"recordId"`
 	Files    []startworkflow_service.File `json:"files"`
 }
 
-func PostWorkflowHandler(
+func PostAllWorkflowsHandler(
 	ctx context.Context,
 	logger *zap.Logger,
 	pool *pgxpool.Pool,
@@ -29,19 +28,18 @@ func PostWorkflowHandler(
 	configs []config.WorkflowConfig,
 ) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		reqBody, err := common.GetValidRequestBody(w, r, validateStartBody)
+		reqBody, err := common.GetValidRequestBody(w, r, validateStartAllBody)
 		if err != nil {
 			logger.Error("Requst body invalid", zap.Error(err))
 			return
 		}
 
-		err = startworkflow_service.StartWorkflow(
+		err = startworkflow_service.StartAllWorkflows(
 			ctx,
 			logger,
 			pool,
 			argoUrl,
 			baseUrl,
-			reqBody.Name,
 			reqBody.RecordId,
 			reqBody.Files,
 			configs,
@@ -62,15 +60,11 @@ func PostWorkflowHandler(
 	})
 }
 
-func validateStartBody(body *startRequestBody) error {
+func validateStartAllBody(body *startAllRequestBody) error {
 	var errors []string
 
 	if body.RecordId == "" {
 		errors = append(errors, "recordId")
-	}
-
-	if body.Name == "" {
-		errors = append(errors, "name")
 	}
 
 	if len(body.Files) > 0 {
