@@ -9,15 +9,16 @@ import (
 	"fi.muni.cz/invenio-file-processor/v2/config"
 	"fi.muni.cz/invenio-file-processor/v2/jsonapi"
 	"fi.muni.cz/invenio-file-processor/v2/routes/common"
+	"fi.muni.cz/invenio-file-processor/v2/services"
 	startworkflow_service "fi.muni.cz/invenio-file-processor/v2/services/start_workflow"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
 )
 
 type startRequestBody struct {
-	Name     string                       `json:"name"`
-	RecordId string                       `json:"recordId"`
-	Files    []startworkflow_service.File `json:"files"`
+	Name     string          `json:"name"`
+	RecordId string          `json:"recordId"`
+	Files    []services.File `json:"files"`
 }
 
 func PostWorkflowHandler(

@@ -6,15 +6,11 @@ import (
 
 	"fi.muni.cz/invenio-file-processor/v2/api/argodtos"
 	"fi.muni.cz/invenio-file-processor/v2/config"
+	"fi.muni.cz/invenio-file-processor/v2/services"
 	"fi.muni.cz/invenio-file-processor/v2/util"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
 )
-
-type File struct {
-	FileName string `json:"key"`
-	Mimetype string `json:"mimetype"`
-}
 
 // for now one process for easch file type
 // TBD: wrap in transaction with isolation=REPEATABLE_READ, tx
@@ -30,7 +26,7 @@ func StartWorkflow(
 	baseUrl string,
 	name string,
 	recordId string,
-	files []File,
+	files []services.File,
 	configs []config.WorkflowConfig,
 ) error {
 	workflow, err := createWorkflowSingleConfig(
@@ -62,7 +58,7 @@ func createWorkflowSingleConfig(
 	configs []config.WorkflowConfig,
 	name string,
 	recordId string,
-	files []File,
+	files []services.File,
 	baseUrl string,
 ) (*argodtos.Workflow, error) {
 	conf, err := findWorkflowConfig(configs, name, files)
@@ -88,7 +84,7 @@ func createWorkflowSingleConfig(
 		workflowEntity.WorkflowName,
 		workflowEntity.WorkflowSeqId,
 		recordId,
-		util.Map(files, func(file File) string { return file.FileName }),
+		util.Map(files, func(file services.File) string { return file.FileName }),
 	)
 
 	return workflow, nil
@@ -97,7 +93,7 @@ func createWorkflowSingleConfig(
 func findWorkflowConfig(
 	configs []config.WorkflowConfig,
 	name string,
-	files []File,
+	files []services.File,
 ) (*config.WorkflowConfig, error) {
 	for _, conf := range configs {
 		if conf.Name == name {
@@ -113,7 +109,7 @@ func findWorkflowConfig(
 
 func validateFiles(
 	mimetype string,
-	files []File,
+	files []services.File,
 ) error {
 	for _, file := range files {
 		if file.Mimetype != mimetype {

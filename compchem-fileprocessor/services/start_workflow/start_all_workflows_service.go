@@ -7,6 +7,7 @@ import (
 	"fi.muni.cz/invenio-file-processor/v2/api/argodtos"
 	"fi.muni.cz/invenio-file-processor/v2/config"
 	repository_common "fi.muni.cz/invenio-file-processor/v2/repository/common"
+	"fi.muni.cz/invenio-file-processor/v2/services"
 	"fi.muni.cz/invenio-file-processor/v2/util"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -15,7 +16,7 @@ import (
 
 type ConfigWithFiles struct {
 	config config.WorkflowConfig
-	files  []File
+	files  []services.File
 }
 
 func StartAllWorkflows(
@@ -25,7 +26,7 @@ func StartAllWorkflows(
 	argoUrl string,
 	baseUrl string,
 	recordId string,
-	files []File,
+	files []services.File,
 	configs []config.WorkflowConfig,
 ) error {
 	workflows, err := createWorkflowsWithAllConfigs(
@@ -65,7 +66,7 @@ func createWorkflowsWithAllConfigs(
 	pool *pgxpool.Pool,
 	configs []config.WorkflowConfig,
 	recordId string,
-	files []File,
+	files []services.File,
 	baseUrl string,
 ) ([]*argodtos.Workflow, error) {
 	configsWithFiles, err := findAllMatchingConfigs(configs, files)
@@ -103,7 +104,7 @@ func createWorkflowsWithAllConfigs(
 			createdWorkflow.WorkflowName,
 			createdWorkflow.WorkflowSeqId,
 			recordId,
-			util.Map(files, func(file File) string { return file.FileName }),
+			util.Map(files, func(file services.File) string { return file.FileName }),
 		)
 
 		workflows = append(workflows, workflow)
@@ -119,7 +120,7 @@ func createWorkflowsWithAllConfigs(
 
 func findAllMatchingConfigs(
 	configs []config.WorkflowConfig,
-	files []File,
+	files []services.File,
 ) ([]ConfigWithFiles, error) {
 	result := []ConfigWithFiles{}
 
@@ -139,9 +140,9 @@ func findAllMatchingConfigs(
 
 func findFilesForConfig(
 	conf config.WorkflowConfig,
-	files []File,
+	files []services.File,
 ) ConfigWithFiles {
-	result := []File{}
+	result := []services.File{}
 
 	for _, file := range files {
 		if file.Mimetype == conf.Filetype {

@@ -9,6 +9,7 @@ import (
 	repositorytest "fi.muni.cz/invenio-file-processor/v2/repository/test"
 	"fi.muni.cz/invenio-file-processor/v2/repository/workflow_repository"
 	"fi.muni.cz/invenio-file-processor/v2/repository/workflowfile_repository"
+	"fi.muni.cz/invenio-file-processor/v2/services"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -35,7 +36,7 @@ func (s *startAllWorkflowsTestSuite) TestFindAllMatchingConfigs_NoneMatchProvide
 		},
 	}
 
-	configsWithFiles, err := findAllMatchingConfigs(configs, []File{
+	configsWithFiles, err := findAllMatchingConfigs(configs, []services.File{
 		{
 			FileName: "my-file.png",
 			Mimetype: "image/png",
@@ -54,7 +55,7 @@ func (s *startAllWorkflowsTestSuite) TestFindAllMatchingConfigs_FilesMatchSingle
 		},
 	}
 
-	configsWithFiles, err := findAllMatchingConfigs(configs, []File{
+	configsWithFiles, err := findAllMatchingConfigs(configs, []services.File{
 		{
 			FileName: "my-file.png",
 			Mimetype: "image/png",
@@ -94,7 +95,7 @@ func (s *startAllWorkflowsTestSuite) TestFindAllMatchingCnofigs_FilesMatchMultip
 		},
 	}
 
-	configsWithFiles, err := findAllMatchingConfigs(configs, []File{
+	configsWithFiles, err := findAllMatchingConfigs(configs, []services.File{
 		{
 			FileName: "my-file.png",
 			Mimetype: "image/png",
@@ -182,7 +183,7 @@ func (s *startAllWorkflowsTestSuite) TestCreateWorkflowsWithAllConfigs_TwoConfig
 		pool,
 		configs,
 		"ej26y-ad28j",
-		[]File{
+		[]services.File{
 			{
 				FileName: "test.txt",
 				Mimetype: "txt",

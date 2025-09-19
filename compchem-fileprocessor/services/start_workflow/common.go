@@ -11,6 +11,7 @@ import (
 	"fi.muni.cz/invenio-file-processor/v2/repository/file_repository"
 	"fi.muni.cz/invenio-file-processor/v2/repository/workflow_repository"
 	"fi.muni.cz/invenio-file-processor/v2/repository/workflowfile_repository"
+	"fi.muni.cz/invenio-file-processor/v2/services"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
@@ -48,7 +49,7 @@ func createWorkflowFile(
 	ctx context.Context,
 	logger *zap.Logger,
 	tx pgx.Tx,
-	file File,
+	file services.File,
 	recordId string,
 	workflowId uint64,
 ) error {
@@ -97,7 +98,7 @@ func addSingleWorkflowToDb(
 	logger *zap.Logger,
 	pool *pgxpool.Pool,
 	recordId string,
-	files []File,
+	files []services.File,
 	workflowName string,
 ) (*workflow_repository.ExistingWorfklowEntity, error) {
 	tx, err := pool.BeginTx(ctx, pgx.TxOptions{
@@ -127,7 +128,7 @@ func addWorkflowInternal(
 	logger *zap.Logger,
 	tx pgx.Tx,
 	recordId string,
-	files []File,
+	files []services.File,
 	workflowName string,
 ) (*workflow_repository.ExistingWorfklowEntity, error) {
 	seqNumber, err := workflow_repository.GetSequentialNumberForRecord(ctx, logger, tx, recordId)

@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"fi.muni.cz/invenio-file-processor/v2/routes/common"
-	startworkflow_service "fi.muni.cz/invenio-file-processor/v2/services/start_workflow"
+	"fi.muni.cz/invenio-file-processor/v2/services"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -29,7 +29,7 @@ func TestValidateAllBody_MissingBody_ReturnsError(t *testing.T) {
 
 func TestValidateAllBody_OkBody_BodyIsCorrectlyMapped(t *testing.T) {
 	expected := startAllRequestBody{
-		Files: []startworkflow_service.File{
+		Files: []services.File{
 			{
 				FileName: "test",
 				Mimetype: "test",

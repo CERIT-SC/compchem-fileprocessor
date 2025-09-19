@@ -9,6 +9,7 @@ import (
 	repositorytest "fi.muni.cz/invenio-file-processor/v2/repository/test"
 	"fi.muni.cz/invenio-file-processor/v2/repository/workflow_repository"
 	"fi.muni.cz/invenio-file-processor/v2/repository/workflowfile_repository"
+	"fi.muni.cz/invenio-file-processor/v2/services"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -35,7 +36,7 @@ func (s *startWorkflowServiceTestSuite) TestFindWorkflowConfig_MatchingConfigExi
 		},
 	}
 
-	conf, err := findWorkflowConfig(configs, "text-processing", []File{})
+	conf, err := findWorkflowConfig(configs, "text-processing", []services.File{})
 	assert.NoError(t, err, "error should be nil because config exists")
 	assert.Equal(t, conf, &configs[0], "returned should be the same object as in setup")
 }
@@ -49,7 +50,7 @@ func (s *startWorkflowServiceTestSuite) TestFindWorkflowConfig_NoConfig_ErorrRet
 		},
 	}
 
-	conf, err := findWorkflowConfig(configs, "text-processing", []File{})
+	conf, err := findWorkflowConfig(configs, "text-processing", []services.File{})
 	assert.Nil(t, conf, "config should be null")
 	assert.Error(t, err, "error should have been returned")
 }
@@ -79,7 +80,7 @@ func (s *startWorkflowServiceTestSuite) TestCreateWorkflow_WorkflowCreated_DbInC
 		configs,
 		"count-words",
 		"ej26y-ad28j",
-		[]File{
+		[]services.File{
 			{
 				FileName: "test.txt",
 				Mimetype: "txt",
