@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"fi.muni.cz/invenio-file-processor/v2/routes/common"
-	startworkflow_service "fi.muni.cz/invenio-file-processor/v2/service/start_workflow"
+	startworkflow_service "fi.muni.cz/invenio-file-processor/v2/services/start_workflow"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"fi.muni.cz/invenio-file-processor/v2/routes/common"
-	"fi.muni.cz/invenio-file-processor/v2/service"
+	"fi.muni.cz/invenio-file-processor/v2/services/list_workflows"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -21,7 +21,7 @@ func TestGetRequestParams(t *testing.T) {
 		expectedMsg    string
 		expectedLimit  int
 		expectedSkip   int
-		expectedStates []service.Status
+		expectedStates []list_workflows.Status
 	}{
 		{
 			name:           "Default values with no params",
@@ -30,7 +30,7 @@ func TestGetRequestParams(t *testing.T) {
 			expectError:    false,
 			expectedLimit:  20,
 			expectedSkip:   0,
-			expectedStates: []service.Status{},
+			expectedStates: []list_workflows.Status{},
 		},
 		{
 			name:     "Custom limit and skip",
@@ -42,7 +42,7 @@ func TestGetRequestParams(t *testing.T) {
 			expectError:    false,
 			expectedLimit:  50,
 			expectedSkip:   10,
-			expectedStates: []service.Status{},
+			expectedStates: []list_workflows.Status{},
 		},
 		{
 			name:     "Invalid limit (non-numeric)",
@@ -71,7 +71,7 @@ func TestGetRequestParams(t *testing.T) {
 			expectError:    false,
 			expectedLimit:  20,
 			expectedSkip:   0,
-			expectedStates: []service.Status{service.StateRunning},
+			expectedStates: []list_workflows.Status{list_workflows.StateRunning},
 		},
 		{
 			name:     "Valid status filter with multiple states",
@@ -82,10 +82,10 @@ func TestGetRequestParams(t *testing.T) {
 			expectError:   false,
 			expectedLimit: 20,
 			expectedSkip:  0,
-			expectedStates: []service.Status{
-				service.StateRunning,
-				service.StatePending,
-				service.StateSucceeded,
+			expectedStates: []list_workflows.Status{
+				list_workflows.StateRunning,
+				list_workflows.StatePending,
+				list_workflows.StateSucceeded,
 			},
 		},
 		{
@@ -135,9 +135,9 @@ func TestGetRequestParams(t *testing.T) {
 			expectError:   false,
 			expectedLimit: 100,
 			expectedSkip:  50,
-			expectedStates: []service.Status{
-				service.StateError,
-				service.StateFailed,
+			expectedStates: []list_workflows.Status{
+				list_workflows.StateError,
+				list_workflows.StateFailed,
 			},
 		},
 		{
@@ -149,7 +149,7 @@ func TestGetRequestParams(t *testing.T) {
 			expectError:    false,
 			expectedLimit:  20,
 			expectedSkip:   0,
-			expectedStates: []service.Status{},
+			expectedStates: []list_workflows.Status{},
 		},
 		{
 			name:     "Status with spaces",
@@ -160,10 +160,10 @@ func TestGetRequestParams(t *testing.T) {
 			expectError:   false,
 			expectedLimit: 20,
 			expectedSkip:  0,
-			expectedStates: []service.Status{
-				service.StateRunning,
-				service.StatePending,
-				service.StateError,
+			expectedStates: []list_workflows.Status{
+				list_workflows.StateRunning,
+				list_workflows.StatePending,
+				list_workflows.StateError,
 			},
 		},
 	}

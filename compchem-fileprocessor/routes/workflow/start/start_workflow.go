@@ -9,7 +9,7 @@ import (
 	"fi.muni.cz/invenio-file-processor/v2/config"
 	"fi.muni.cz/invenio-file-processor/v2/jsonapi"
 	"fi.muni.cz/invenio-file-processor/v2/routes/common"
-	startworkflow_service "fi.muni.cz/invenio-file-processor/v2/service/start_workflow"
+	startworkflow_service "fi.muni.cz/invenio-file-processor/v2/services/start_workflow"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
 )

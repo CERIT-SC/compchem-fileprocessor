@@ -11,7 +11,7 @@ import (
 
 	"fi.muni.cz/invenio-file-processor/v2/jsonapi"
 	"fi.muni.cz/invenio-file-processor/v2/routes/common"
-	"fi.muni.cz/invenio-file-processor/v2/service"
+	"fi.muni.cz/invenio-file-processor/v2/services/list_workflows"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
 )
@@ -20,7 +20,7 @@ type listParams struct {
 	recordId     string
 	skip         int
 	limit        int
-	statusFilter []service.Status
+	statusFilter []list_workflows.Status
 }
 
 func ActiveWorkflowsListHandler(
@@ -36,7 +36,7 @@ func ActiveWorkflowsListHandler(
 			return
 		}
 
-		workflows, err := service.GetWorkflowsForRecord(
+		workflows, err := list_workflows.GetWorkflowsForRecord(
 			ctx,
 			logger,
 			argoUrl,
@@ -60,7 +60,7 @@ func getRequestParams(w http.ResponseWriter, r *http.Request) (*listParams, erro
 
 	params := r.URL.Query()
 	statusParam := params.Get("status")
-	stateFilter := []service.Status{}
+	stateFilter := []list_workflows.Status{}
 	var err error
 
 	stateFilter, err = buildStateFilter(statusParam)
@@ -98,9 +98,9 @@ func getRequestParams(w http.ResponseWriter, r *http.Request) (*listParams, erro
 	}, nil
 }
 
-func buildStateFilter(statuses string) ([]service.Status, error) {
+func buildStateFilter(statuses string) ([]list_workflows.Status, error) {
 	if statuses == "" {
-		return []service.Status{}, nil
+		return []list_workflows.Status{}, nil
 	}
 
 	re := regexp.MustCompile(`\([A-Za-z]+(?:,\s*[A-Za-z]+)*\)`)
@@ -115,15 +115,15 @@ func buildStateFilter(statuses string) ([]service.Status, error) {
 	noWhitespaces := strings.ReplaceAll(slice, " ", "")
 	parsed := strings.Split(noWhitespaces, ",")
 
-	stateMap := map[string]service.Status{
-		"Error":     service.StateError,
-		"Pending":   service.StatePending,
-		"Failed":    service.StateFailed,
-		"Running":   service.StateRunning,
-		"Succeeded": service.StateSucceeded,
+	stateMap := map[string]list_workflows.Status{
+		"Error":     list_workflows.StateError,
+		"Pending":   list_workflows.StatePending,
+		"Failed":    list_workflows.StateFailed,
+		"Running":   list_workflows.StateRunning,
+		"Succeeded": list_workflows.StateSucceeded,
 	}
 
-	states := []service.Status{}
+	states := []list_workflows.Status{}
 
 	for _, stateString := range parsed {
 		state, ok := stateMap[stateString]

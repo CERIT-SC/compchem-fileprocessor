@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"fi.muni.cz/invenio-file-processor/v2/jsonapi"
-	"fi.muni.cz/invenio-file-processor/v2/service"
+	"fi.muni.cz/invenio-file-processor/v2/services/list_workflows"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
 )
@@ -18,7 +18,7 @@ func WorkflowDetailHandler(
 	namespace string,
 ) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		workflows, err := service.GetWorkflowDetailed(
+		workflows, err := list_workflows.GetWorkflowDetailed(
 			ctx,
 			logger,
 			pool,

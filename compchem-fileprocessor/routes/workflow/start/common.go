@@ -3,7 +3,7 @@ package start_workflow_route
 import (
 	"fmt"
 
-	startworkflow_service "fi.muni.cz/invenio-file-processor/v2/service/start_workflow"
+	startworkflow_service "fi.muni.cz/invenio-file-processor/v2/services/start_workflow"
 )
 
 func validateFiles(files []startworkflow_service.File, errors []string) {

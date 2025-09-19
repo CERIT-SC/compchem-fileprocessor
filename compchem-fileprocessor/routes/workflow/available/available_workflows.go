@@ -10,7 +10,7 @@ import (
 	"fi.muni.cz/invenio-file-processor/v2/api/availabledtos"
 	"fi.muni.cz/invenio-file-processor/v2/config"
 	"fi.muni.cz/invenio-file-processor/v2/routes/common"
-	"fi.muni.cz/invenio-file-processor/v2/service"
+	"fi.muni.cz/invenio-file-processor/v2/services/list_workflows"
 	"go.uber.org/zap"
 )
 
@@ -41,7 +41,7 @@ func AvailableWorkflowsHandler(
 			return
 		}
 
-		response := service.AvailableWorkflows(logger, reqBody, configs)
+		response := list_workflows.AvailableWorkflows(logger, reqBody, configs)
 
 		common.EncodeResponse(w, r, http.StatusOK, response)
 

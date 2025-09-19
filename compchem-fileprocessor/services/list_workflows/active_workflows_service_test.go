@@ -1,4 +1,4 @@
-package service
+package list_workflows
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	repositorytest "fi.muni.cz/invenio-file-processor/v2/repository/test"
-	service_test_resources "fi.muni.cz/invenio-file-processor/v2/service/test_resources"
+	service_test_resources "fi.muni.cz/invenio-file-processor/v2/services/test_resources"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
@@ -18,7 +18,7 @@ type activeWorkflowServiceTestSuite struct {
 }
 
 func (s *activeWorkflowServiceTestSuite) SetupSuite() {
-	s.PostgresTestSuite.MigratonsPath = "file://../migrations"
+	s.PostgresTestSuite.MigratonsPath = "file://../../migrations"
 	s.PostgresTestSuite.SetupSuite()
 }
 

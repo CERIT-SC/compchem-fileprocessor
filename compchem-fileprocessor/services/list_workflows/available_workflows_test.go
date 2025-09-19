@@ -1,4 +1,4 @@
-package service
+package list_workflows
 
 import (
 	"testing"

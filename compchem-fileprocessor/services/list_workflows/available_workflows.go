@@ -1,4 +1,4 @@
-package service
+package list_workflows
 
 import (
 	"fi.muni.cz/invenio-file-processor/v2/api/availabledtos"
