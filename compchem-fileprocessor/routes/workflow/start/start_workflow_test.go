@@ -35,13 +35,11 @@ func TestValidateBody_OkBody_ReturnsCorrectBody(t *testing.T) {
 				Mimetype: "test",
 			},
 		},
-		Name:     "count-words",
-		RecordId: "ejw6-7fpy",
+		Name: "count-words",
 	}
 
 	reader := strings.NewReader(`
   {
-    "recordId": "ejw6-7fpy",
     "name": "count-words",
     "files": [
       {

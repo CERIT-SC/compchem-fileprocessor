@@ -38,7 +38,7 @@ func AddRoutes(
 	)
 
 	mux.Handle(
-		buildPathV1(config.ApiContext, "/workflows"),
+		buildPathV1(config.ApiContext, "/workflows/{recordId}"),
 		middleware(methodHandler(http.MethodPost, start_workflow_route.PostWorkflowHandler(
 			ctx,
 			logger,
@@ -50,7 +50,7 @@ func AddRoutes(
 	)
 
 	mux.Handle(
-		buildPathV1(config.ApiContext, "/workflows/all"),
+		buildPathV1(config.ApiContext, "/workflows/{recordId}/all"),
 		middleware(methodHandler(http.MethodPost, start_workflow_route.PostAllWorkflowsHandler(
 			ctx,
 			logger,

@@ -16,9 +16,8 @@ import (
 )
 
 type startRequestBody struct {
-	Name     string          `json:"name"`
-	RecordId string          `json:"recordId"`
-	Files    []services.File `json:"files"`
+	Name  string          `json:"name"`
+	Files []services.File `json:"files"`
 }
 
 func PostWorkflowHandler(
@@ -30,6 +29,7 @@ func PostWorkflowHandler(
 	configs []config.WorkflowConfig,
 ) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		recordId := r.PathValue("recordId")
 		reqBody, err := common.GetValidRequestBody(w, r, validateStartBody)
 		if err != nil {
 			logger.Error("Requst body invalid", zap.Error(err))
@@ -43,7 +43,7 @@ func PostWorkflowHandler(
 			argoUrl,
 			baseUrl,
 			reqBody.Name,
-			reqBody.RecordId,
+			recordId,
 			reqBody.Files,
 			configs,
 		)
@@ -57,7 +57,7 @@ func PostWorkflowHandler(
 
 		logger.Info(
 			"File successfully submitted for processing",
-			zap.String("recordId", reqBody.RecordId),
+			zap.String("recordId", recordId),
 		)
 		w.WriteHeader(http.StatusCreated)
 	})
@@ -65,10 +65,6 @@ func PostWorkflowHandler(
 
 func validateStartBody(body *startRequestBody) error {
 	var errors []string
-
-	if body.RecordId == "" {
-		errors = append(errors, "recordId")
-	}
 
 	if body.Name == "" {
 		errors = append(errors, "name")

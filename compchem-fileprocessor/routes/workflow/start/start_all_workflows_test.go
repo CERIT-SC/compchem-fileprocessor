@@ -35,12 +35,10 @@ func TestValidateAllBody_OkBody_BodyIsCorrectlyMapped(t *testing.T) {
 				Mimetype: "test",
 			},
 		},
-		RecordId: "ejw6-7fpy",
 	}
 
 	reader := strings.NewReader(`
   {
-    "recordId": "ejw6-7fpy",
     "files": [
       {
         "key": "test",

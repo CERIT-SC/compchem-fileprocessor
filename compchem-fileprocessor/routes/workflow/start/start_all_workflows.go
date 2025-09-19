@@ -16,8 +16,7 @@ import (
 )
 
 type startAllRequestBody struct {
-	RecordId string          `json:"recordId"`
-	Files    []services.File `json:"files"`
+	Files []services.File `json:"files"`
 }
 
 func PostAllWorkflowsHandler(
@@ -29,6 +28,7 @@ func PostAllWorkflowsHandler(
 	configs []config.WorkflowConfig,
 ) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		recordId := r.PathValue("recordId")
 		reqBody, err := common.GetValidRequestBody(w, r, validateStartAllBody)
 		if err != nil {
 			logger.Error("Requst body invalid", zap.Error(err))
@@ -41,7 +41,7 @@ func PostAllWorkflowsHandler(
 			pool,
 			argoUrl,
 			baseUrl,
-			reqBody.RecordId,
+			recordId,
 			reqBody.Files,
 			configs,
 		)
@@ -55,7 +55,7 @@ func PostAllWorkflowsHandler(
 
 		logger.Info(
 			"File successfully submitted for processing",
-			zap.String("recordId", reqBody.RecordId),
+			zap.String("recordId", recordId),
 		)
 		w.WriteHeader(http.StatusCreated)
 	})
@@ -63,10 +63,6 @@ func PostAllWorkflowsHandler(
 
 func validateStartAllBody(body *startAllRequestBody) error {
 	var errors []string
-
-	if body.RecordId == "" {
-		errors = append(errors, "recordId")
-	}
 
 	if len(body.Files) > 0 {
 		validateFiles(body.Files, errors)
