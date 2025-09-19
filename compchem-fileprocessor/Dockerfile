@@ -7,12 +7,12 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o invenio-file-processor .
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o compchem-fileprocessor .
 
-FROM alpine:latest
+FROM scratch
 
 WORKDIR /app
 
-COPY --from=builder /app/invenio-file-processor .
+COPY --from=builder /app/compchem-fileprocessor .
 
-ENTRYPOINT ["./invenio-file-processor"]
+ENTRYPOINT ["./compchem-fileprocessor"]

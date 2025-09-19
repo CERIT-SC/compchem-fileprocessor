@@ -1,0 +1,22 @@
+server:
+  host: localhost
+  port: 8062
+
+context-path: "/api"
+
+argo-workflows:
+  url: https://localhost:2746
+  namespace: "argo"
+
+compchem:
+  url: https://host-service.argo.svc.cluster.local:5000/api/experiments
+
+migrations: "file://migrations"
+
+postgres:
+  host: db
+  port: 5432
+  database: fileprocessor
+  auth:
+    user: fileprocessor
+    password: password123

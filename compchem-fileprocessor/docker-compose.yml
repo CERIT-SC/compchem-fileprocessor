@@ -1,14 +1,17 @@
-version: "3.8"
-
 services:
   backend:
     image: compchem-fileprocessor # TODO: tags, cerit repo?
-    container_name: compchem-fileprocessor-api
+    container_name: compchem-fileprocessor
     restart: always
     ports:
       - "8062:8062"
     volumes:
-      - ./server-config.yaml:/app/server-config.yaml
+      - ./server-config-docker.yaml:/app/server-config.yaml
+      - ./migrations/:/app/migrations
+    depends_on:
+      - db
+    profiles:
+      - "run-backend"
   db:
     image: "postgres:17"
     container_name: fileprocessor-database
