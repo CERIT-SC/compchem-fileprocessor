@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "compchem-helm-chart.fullname" . }}-fileprocessor-config
+  labels:
+    {{- include "compchem-helm-chart.labels" . | nindent 4 }}
+    app.kubernetes.io/component: fileprocessor
+data:
+  application.yaml: |
+    server:
+      host: {{ .Values.fileprocessor.server.host }}
+      port: {{ .Values.fileprocessor.server.port }}
+    context-path: {{ .Values.fileprocessor.server.contextPath | quote }}
+    argo-workflows:
+      url: {{ .Values.fileprocessor.argoWorkflows.url }}
+      namespace: {{ .Values.fileprocessor.argoWorkflows.namespace | quote }}
+    compchem:
+      url: {{ .Values.fileprocessor.compchem.url }}
+    migrations: {{ .Values.fileprocessor.migrations | quote }}
+    postgres:
+      host: {{ .Values.fileprocessor.fileprocessorPostgres.host }}
+      port: {{ .Values.fileprocessor.fileprocessorPostgres.port }}
+      database: {{ .Values.fileprocessor.fileprocessorPostgres.database }}
+      auth:
+        user: {{ .Values.fileprocessor.fileprocessorPostgres.auth.user }}
+    {{- if .Values.fileprocessor.workflows }}
+    workflows:
+      {{- toYaml .Values.fileprocessor.workflows | nindent 6 }}
+    {{- else }}
+    workflows: []
+    {{- end }}

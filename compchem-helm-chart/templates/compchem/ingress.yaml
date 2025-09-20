@@ -1,0 +1,42 @@
+{{- if .Values.compchem.ingress.enabled -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "compchem-helm-chart.fullname" . }}-compchem
+  labels:
+    {{- include "compchem-helm-chart.labels" . | nindent 4 }}
+    app.kubernetes.io/component: compchem
+  {{- with .Values.compchem.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.compchem.ingress.className }}
+  ingressClassName: {{ .Values.compchem.ingress.className }}
+  {{- end }}
+  {{- if .Values.compchem.ingress.tls }}
+  tls:
+    {{- range .Values.compchem.ingress.tls }}
+    - hosts:
+        {{- range .hosts }}
+        - {{ . | quote }}
+        {{- end }}
+      secretName: {{ .secretName }}
+    {{- end }}
+  {{- end }}
+  rules:
+    {{- range .Values.compchem.ingress.hosts }}
+    - host: {{ .host | quote }}
+      http:
+        paths:
+          {{- range .paths }}
+          - path: {{ .path }}
+            pathType: {{ .pathType }}
+            backend:
+              service:
+                name: {{ include "compchem-helm-chart.fullname" $ }}-compchem
+                port:
+                  number: {{ $.Values.compchem.service.httpsPort }}
+          {{- end }}
+    {{- end }}
+{{- end }}

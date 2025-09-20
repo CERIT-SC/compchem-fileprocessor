@@ -1,0 +1,486 @@
+# Affinity for pod assignment
+affinity: {}
+
+# Extra environment variables
+extraEnv: []
+  # - name: CUSTOM_ENV_VAR
+  #   value: "custom-value"
+  # - name: SECRET_ENV_VAR
+  #   valueFrom:
+  #     secretKeyRef:
+  #       name: my-secret
+  #       key: secret-key
+
+# CompcChem Application Configuration
+compchem:
+  # Enable CompcChem deployment
+  enabled: true
+
+  # Image configuration
+  image:
+    repository: your-registry/compchem
+    tag: "latest"
+    pullPolicy: IfNotPresent
+
+  # Deployment configuration
+  replicaCount: 1
+
+  # Service configuration
+  service:
+    type: ClusterIP
+    httpPort: 5000   # Flask HTTP API
+    httpsPort: 8443  # HTTPS UI and API
+    statsPort: 6969  # uWSGI stats (optional)
+    # Node ports (only used if type is NodePort)
+    # httpNodePort: 30050
+    # httpsNodePort: 30443
+    # statsNodePort: 30969
+
+  # Ingress configuration
+  ingress:
+    enabled: true
+    className: ""
+    annotations:
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+      # cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    hosts:
+      - host: compchem.local
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: compchem-tls
+        hosts:
+          - compchem.local
+
+  # Application configuration
+  secretKey: "your-super-secret-key-change-this-in-production"
+  instancePath: "/invenio/instance"
+  staticFolder: "/invenio/instance/static"
+  theme: "compchem"
+  flaskEnv: "production"
+
+  # uWSGI configuration
+  wsgi:
+    processes: 2
+    threads: 4
+
+  # TLS configuration
+  tls:
+    cert: ""  # Base64 encoded certificate
+    key: ""   # Base64 encoded private key
+
+  # Database configuration (when using external database)
+  database:
+    host: "external-postgres.example.com"
+    port: 5432
+    name: "compchem"
+    user: "compchem"
+    password: "external-password"
+
+  # Redis configuration (when using external Redis)
+  redis:
+    host: "external-redis.example.com"
+    port: 6379
+
+  # RabbitMQ configuration (when using external RabbitMQ)
+  rabbitmq:
+    host: "external-rabbitmq.example.com"
+    port: 5672
+    adminPort: 15672
+    user: "compchem"
+    password: "external-rabbitmq-password"
+
+  # OpenSearch configuration (when using external OpenSearch)
+  opensearch:
+    host: "external-opensearch.example.com"
+    port: 9200
+    clusterPort: 9300
+
+  # S3 configuration (when using external S3)
+  s3:
+    host: "external-s3.example.com"
+    port: 9000
+    consolePort: 9001
+    bucket: "compchem-bucket"
+    endpointUrl: "https://external-s3.example.com"
+    accessKey: "external-access-key"
+    secretKey: "external-secret-key"
+
+  # Persistence configuration
+  persistence:
+    enabled: true
+    size: 10Gi
+    accessMode: ReadWriteOnce
+    # storageClass: ""  # Use default storage class
+
+  # Service Account for CompcChem
+  serviceAccount:
+    # Specifies whether a service account should be created for CompcChem
+    create: true
+    # Annotations to add to the service account
+    annotations: {}
+    # The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname template
+    name: ""
+
+  # Resource limits and requests
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
+
+  # Node selector for pod assignment
+  nodeSelector: {}
+
+  # Tolerations for pod assignment
+  tolerations: []
+
+  # Affinity for pod assignment
+  affinity:# Default values for compchem-helm-chart.
+
+# Global configuration
+nameOverride: ""
+fullnameOverride: ""
+
+# Service Account
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+fileprocessor:
+  # Image configuration
+  image:
+    repository: docker.io/xkollar173/fileprocessor
+    tag: "0.1.0"
+    pullPolicy: IfNotPresent
+
+  # Deployment configuration
+  replicaCount: 1
+
+  # Service configuration
+  service:
+    type: ClusterIP
+    port: 8062
+    # nodePort: 30080  # Only used if type is NodePort
+
+  # Server configuration
+  server:
+    host: localhost
+    port: 8062
+    contextPath: "/api"
+
+  # Argo Workflows configuration
+  argoWorkflows:
+    url: https://localhost:2746
+    namespace: "argo"
+
+  # CompChem service configuration
+  compchem:
+    url: https://host-service.argo.svc.cluster.local:5000/api/experiments
+
+  # Database migrations
+  migrations: "file://migrations"
+
+  # PostgreSQL configuration
+  postgres:
+    # When fileprocessor-postgres.enabled is true, use the deployed PostgreSQL instance
+    # When false, use external PostgreSQL with the settings below
+    host: '{{ include "compchem-helm-chart.fullname" . }}-fileprocessor-postgres'
+    port: 5432
+    database: fileprocessor
+    auth:
+      user: fileprocessor
+      # Password for PostgreSQL database
+      # This will be stored as a Kubernetes secret
+      password: password123
+
+  # Workflow processing configuration
+  # This section defines the file processing workflows available in the system
+  # Each workflow specifies:
+  # - name: unique identifier for the workflow
+  # - filetype: MIME type of files this workflow can process
+  # - processing-templates: list of Argo workflow templates to execute
+  #
+  # Example configuration:
+  # workflows:
+  #   - name: count-words
+  #     filetype: text/plain
+  #     processing-templates:
+  #       - name: count-words-template
+  #         template: count-words
+  #   - name: count-words-json
+  #     filetype: application/json
+  #     processing-templates:
+  #       - name: count-words-template
+  #         template: count-words
+  #   - name: process-csv
+  #     filetype: text/csv
+  #     processing-templates:
+  #       - name: validate-csv-template
+  #         template: validate-csv
+  #       - name: transform-csv-template
+  #         template: transform-csv
+  workflows: []
+
+  # Service Account for fileprocessor
+  serviceAccount:
+    # Specifies whether a service account should be created for fileprocessor
+    create: true
+    # Annotations to add to the service account
+    annotations: {}
+    # The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname template
+    name: ""
+
+  # Resource limits and requests
+  resources: {}
+    # limits:
+    #   cpu: 500m
+    #   memory: 512Mi
+    # requests:
+    #   cpu: 250m
+    #   memory: 256Mi
+
+  # Node selector for pod assignment
+  nodeSelector: {}
+
+  # Tolerations for pod assignment
+  tolerations: []
+
+  # Affinity for pod assignment
+  affinity: {}
+
+  # Extra environment variables
+  extraEnv: []
+    # - name: CUSTOM_ENV_VAR
+    #   value: "custom-value"
+    # - name: SECRET_ENV_VAR
+    #   valueFrom:
+    #     secretKeyRef:
+    #       name: my-secret
+    #       key: secret-key
+
+# Argo Workflows dependency configuration
+argo:
+  # Override default argo-workflows values here
+  # Refer to: https://github.com/argoproj/argo-helm/tree/main/charts/argo-workflows
+  controller:
+    workflowNamespaces:
+      - argo
+  server:
+    enabled: true
+
+# PostgreSQL dependency configuration for fileprocessor
+fileprocessor-postgres:
+  # Enable PostgreSQL deployment for fileprocessor
+  enabled: true
+
+  # PostgreSQL configuration
+  # Refer to: https://github.com/bitnami/charts/tree/main/bitnami/postgresql
+  auth:
+    postgresPassword: "postgres123"
+    username: "fileprocessor"
+    password: "password123"
+    database: "fileprocessor"
+
+  # PostgreSQL service configuration
+  primary:
+    service:
+      ports:
+        postgresql: 5432
+
+    # Resource configuration for PostgreSQL
+    resources:
+      limits:
+        memory: 512Mi
+        cpu: 500m
+      requests:
+        memory: 256Mi
+        cpu: 250m
+
+    # Persistence configuration
+    persistence:
+      enabled: true
+      size: 8Gi
+      # storageClass: ""  # Use default storage class
+
+  # Metrics and monitoring
+  metrics:
+    enabled: false
+    # serviceMonitor:
+    #   enabled: false
+
+# CompcChem dependencies configuration
+compchem-postgres:
+  # Enable PostgreSQL deployment for CompcChem
+  enabled: true
+
+  auth:
+    postgresPassword: "compchem-postgres123"
+    username: "compchem"
+    password: "compchem-password123"
+    database: "compchem"
+
+  primary:
+    service:
+      ports:
+        postgresql: 5432
+
+    resources:
+      limits:
+        memory: 1Gi
+        cpu: 1000m
+      requests:
+        memory: 512Mi
+        cpu: 500m
+
+    persistence:
+      enabled: true
+      size: 20Gi
+
+  metrics:
+    enabled: false
+
+compchem-redis:
+  # Enable Redis deployment for CompcChem cache
+  enabled: true
+
+  # Redis configuration
+  auth:
+    enabled: false  # Disable auth for development, enable for production
+    # password: "redis-password123"
+
+  master:
+    service:
+      ports:
+        redis: 6379
+
+    resources:
+      limits:
+        memory: 256Mi
+        cpu: 250m
+      requests:
+        memory: 128Mi
+        cpu: 100m
+
+    persistence:
+      enabled: false  # Cache doesn't need persistence
+
+  replica:
+    replicaCount: 0  # Single Redis instance for simplicity
+
+  metrics:
+    enabled: false
+
+compchem-rabbitmq:
+  # Enable RabbitMQ deployment for CompcChem message queue
+  enabled: true
+
+  # RabbitMQ configuration
+  auth:
+    username: "compchem"
+    password: "rabbitmq-password123"
+    erlangCookie: "secretcookie123"
+
+  service:
+    ports:
+      amqp: 5672
+      manager: 15672
+
+  resources:
+    limits:
+      memory: 512Mi
+      cpu: 500m
+    requests:
+      memory: 256Mi
+      cpu: 250m
+
+  persistence:
+    enabled: true
+    size: 8Gi
+
+  metrics:
+    enabled: false
+
+compchem-opensearch:
+  # Enable OpenSearch deployment for CompcChem search
+  enabled: true
+
+  # OpenSearch configuration
+  config:
+    opensearch.yml: |
+      cluster.name: compchem-cluster
+      network.host: 0.0.0.0
+      bootstrap.memory_lock: true
+      discovery.type: single-node
+      plugins.security.disabled: true
+      plugins.security.ssl.http.enabled: false
+      plugins.security.ssl.transport.enabled: false
+
+  # Single node configuration for development
+  singleNode: true
+
+  masterService: compchem-opensearch
+
+  opensearchJavaOpts: "-Xmx512m -Xms512m"
+
+  resources:
+    limits:
+      memory: 1Gi
+      cpu: 1000m
+    requests:
+      memory: 512Mi
+      cpu: 500m
+
+  persistence:
+    enabled: true
+    size: 10Gi
+
+  service:
+    type: ClusterIP
+    ports:
+      http: 9200
+      transport: 9300
+
+compchem-minio:
+  # Enable MinIO deployment for CompcChem S3 storage
+  enabled: true
+
+  # MinIO configuration
+  auth:
+    rootUser: "compchem"
+    rootPassword: "minio-password123"
+
+  # Default buckets to create
+  defaultBuckets: "compchem-bucket"
+
+  service:
+    type: ClusterIP
+    ports:
+      api: 9000
+      console: 9001
+
+  resources:
+    limits:
+      memory: 512Mi
+      cpu: 500m
+    requests:
+      memory: 256Mi
+      cpu: 250m
+
+  persistence:
+    enabled: true
+    size: 20Gi
+
+  metrics:
+    enabled: false

@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "compchem-helm-chart.fullname" . }}-fileprocessor
+  labels:
+    {{- include "compchem-helm-chart.labels" . | nindent 4 }}
+    app.kubernetes.io/component: fileprocessor
+spec:
+  replicas: {{ .Values.fileprocessor.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "compchem-helm-chart.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: fileprocessor
+  template:
+    metadata:
+      labels:
+        {{- include "compchem-helm-chart.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: fileprocessor
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/fileprocessor/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/fileprocessor/secret.yaml") . | sha256sum }}
+    spec:
+      containers:
+        - name: fileprocessor
+          image: "{{ .Values.fileprocessor.image.repository }}:{{ .Values.fileprocessor.image.tag }}"
+          imagePullPolicy: {{ .Values.fileprocessor.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.fileprocessor.server.port }}
+              protocol: TCP
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "compchem-helm-chart.fullname" . }}-fileprocessor-secret
+                  key: postgres-password
+          volumeMounts:
+            - name: config
+              mountPath: /app/application.yaml
+              subPath: application.yaml
+              readOnly: true
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.fileprocessor.server.contextPath }}/health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.fileprocessor.server.contextPath }}/health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            {{- toYaml .Values.fileprocessor.resources | nindent 12 }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "compchem-helm-chart.fullname" . }}-fileprocessor-config
+      {{- with .Values.fileprocessor.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.fileprocessor.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.fileprocessor.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
