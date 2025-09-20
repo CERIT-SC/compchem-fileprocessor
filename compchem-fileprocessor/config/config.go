@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
@@ -57,6 +58,15 @@ type ProcessingTemplate struct {
 	Template string `yaml:"template"`
 }
 
+type EnvBinding struct {
+	EnvVariable string
+	ConfigKey   string
+}
+
+const (
+	POSTGRES_PASSWORD = "postgres.auth.password"
+)
+
 func LoadConfig(logger *zap.Logger, workdir string) (*Config, error) {
 	DEFAULT_CONFIG_NAME := "server-config.yaml"
 
@@ -74,6 +84,8 @@ func LoadConfig(logger *zap.Logger, workdir string) (*Config, error) {
 		return nil, err
 	}
 
+	config = resolveEnv(logger, config)
+
 	config, validationErrors := validateConfig(logger, config)
 	if len(validationErrors) > 0 {
 		logValidationErrors(logger, validationErrors)
@@ -81,6 +93,16 @@ func LoadConfig(logger *zap.Logger, workdir string) (*Config, error) {
 	}
 
 	return config, nil
+}
+
+func resolveEnv(logger *zap.Logger, config *Config) *Config {
+	pg_pass := os.Getenv("POSTGRES_PASSWORD")
+	if pg_pass != "" {
+		logger.Info("postgres password resolved from environment")
+		config.Postgres.Auth.Password = pg_pass
+	}
+
+	return config
 }
 
 func logValidationErrors(logger *zap.Logger, errors map[string]string) {
