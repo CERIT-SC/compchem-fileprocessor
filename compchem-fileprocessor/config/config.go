@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-	"strings"
 
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
