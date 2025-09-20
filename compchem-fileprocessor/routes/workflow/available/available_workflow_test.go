@@ -8,8 +8,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"fi.muni.cz/invenio-file-processor/v2/api/availabledtos"
 	"fi.muni.cz/invenio-file-processor/v2/config"
+	"fi.muni.cz/invenio-file-processor/v2/services"
+	"fi.muni.cz/invenio-file-processor/v2/services/list_workflows"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 )
@@ -44,14 +45,14 @@ func TestAvailableWorkflowsHandler_ValidBody_CorrectResponseReturned(t *testing.
 		},
 	}
 
-	reqBody := availabledtos.AvailableWorkflowsRequest{
-		Files: []availabledtos.KeyAndType{
+	reqBody := list_workflows.AvailableWorkflowsRequest{
+		Files: []services.File{
 			{
-				FileKey:  "test1.txt",
+				FileName: "test1.txt",
 				Mimetype: "text/plain",
 			},
 			{
-				FileKey:  "test.jpeg",
+				FileName: "test.jpeg",
 				Mimetype: "image/jpeg",
 			},
 		},
@@ -68,7 +69,7 @@ func TestAvailableWorkflowsHandler_ValidBody_CorrectResponseReturned(t *testing.
 
 	assert.Equal(t, http.StatusOK, w.Code)
 
-	var response availabledtos.AvailableWorkflowsResponse
+	var response list_workflows.AvailableWorkflowsResponse
 	err = json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(t, err)
 
@@ -101,8 +102,8 @@ func TestAvailableWorkflowsHandler_ValidBodyNoConfigs_EmtpyOKResponse(t *testing
 		},
 	}
 
-	reqBody := availabledtos.AvailableWorkflowsRequest{
-		Files: []availabledtos.KeyAndType{},
+	reqBody := list_workflows.AvailableWorkflowsRequest{
+		Files: []services.File{},
 	}
 	jsonBody, err := json.Marshal(reqBody)
 	assert.NoError(t, err)
@@ -116,7 +117,7 @@ func TestAvailableWorkflowsHandler_ValidBodyNoConfigs_EmtpyOKResponse(t *testing
 
 	assert.Equal(t, http.StatusOK, w.Code)
 
-	var response availabledtos.AvailableWorkflowsResponse
+	var response list_workflows.AvailableWorkflowsResponse
 	err = json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(t, err)
 
@@ -130,27 +131,27 @@ func TestAvailbleWorkflowsHandler_InvalidBody_StatusBadRequest(t *testing.T) {
 
 	testCases := []struct {
 		name     string
-		reqBody  availabledtos.AvailableWorkflowsRequest
+		reqBody  list_workflows.AvailableWorkflowsRequest
 		expected string
 	}{
 		{
-			name: "Missing FileKey",
-			reqBody: availabledtos.AvailableWorkflowsRequest{
-				Files: []availabledtos.KeyAndType{
+			name: "Missing FileName",
+			reqBody: list_workflows.AvailableWorkflowsRequest{
+				Files: []services.File{
 					{
-						FileKey:  "",
+						FileName: "",
 						Mimetype: "text/plain",
 					},
 				},
 			},
-			expected: "missing file_key at: 0",
+			expected: "missing filename at: 0",
 		},
 		{
 			name: "Missing Mimetype",
-			reqBody: availabledtos.AvailableWorkflowsRequest{
-				Files: []availabledtos.KeyAndType{
+			reqBody: list_workflows.AvailableWorkflowsRequest{
+				Files: []services.File{
 					{
-						FileKey:  "test.txt",
+						FileName: "test.txt",
 						Mimetype: "",
 					},
 				},
@@ -159,19 +160,19 @@ func TestAvailbleWorkflowsHandler_InvalidBody_StatusBadRequest(t *testing.T) {
 		},
 		{
 			name: "Multiple Missing Fields",
-			reqBody: availabledtos.AvailableWorkflowsRequest{
-				Files: []availabledtos.KeyAndType{
+			reqBody: list_workflows.AvailableWorkflowsRequest{
+				Files: []services.File{
 					{
-						FileKey:  "",
+						FileName: "",
 						Mimetype: "",
 					},
 					{
-						FileKey:  "test2.txt",
+						FileName: "test2.txt",
 						Mimetype: "",
 					},
 				},
 			},
-			expected: "missing file_key at: 0, missing mimetype at: 0, missing mimetype at: 1",
+			expected: "missing filename at: 0, missing mimetype at: 0, missing mimetype at: 1",
 		},
 	}
 

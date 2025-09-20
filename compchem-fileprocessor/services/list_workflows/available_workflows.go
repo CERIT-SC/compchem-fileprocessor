@@ -1,16 +1,30 @@
 package list_workflows
 
 import (
-	"fi.muni.cz/invenio-file-processor/v2/api/availabledtos"
 	"fi.muni.cz/invenio-file-processor/v2/config"
+	"fi.muni.cz/invenio-file-processor/v2/services"
 	"go.uber.org/zap"
 )
 
+type AvailableWorkflowsRequest struct {
+	Files []services.File `json:"files"`
+}
+
+type AvailableWorkflowsResponse struct {
+	Workflows []AvailableWorkflow `json:"workflows"`
+}
+
+type AvailableWorkflow struct {
+	Name     string   `json:"name"`
+	Mimetype string   `json:"mimetype"`
+	Files    []string `json:"files"`
+}
+
 func AvailableWorkflows(
 	logger *zap.Logger,
-	request *availabledtos.AvailableWorkflowsRequest,
+	request *AvailableWorkflowsRequest,
 	configs []config.WorkflowConfig,
-) *availabledtos.AvailableWorkflowsResponse {
+) *AvailableWorkflowsResponse {
 	fileMap := convertRequestToMap(request)
 
 	return convertMapToAvailableWorkflows(fileMap, configs)
@@ -19,11 +33,11 @@ func AvailableWorkflows(
 func convertMapToAvailableWorkflows(
 	mimeTypeMap map[string][]string,
 	configs []config.WorkflowConfig,
-) *availabledtos.AvailableWorkflowsResponse {
-	workflows := []availabledtos.AvailableWorkflow{}
+) *AvailableWorkflowsResponse {
+	workflows := []AvailableWorkflow{}
 	for _, workflow := range configs {
 		if eligibleFiles, isPresent := mimeTypeMap[workflow.Filetype]; isPresent {
-			workflows = append(workflows, availabledtos.AvailableWorkflow{
+			workflows = append(workflows, AvailableWorkflow{
 				Name:     workflow.Name,
 				Mimetype: workflow.Filetype,
 				Files:    eligibleFiles,
@@ -31,19 +45,19 @@ func convertMapToAvailableWorkflows(
 		}
 	}
 
-	return &availabledtos.AvailableWorkflowsResponse{
+	return &AvailableWorkflowsResponse{
 		Workflows: workflows,
 	}
 }
 
-func convertRequestToMap(request *availabledtos.AvailableWorkflowsRequest) map[string][]string {
+func convertRequestToMap(request *AvailableWorkflowsRequest) map[string][]string {
 	result := make(map[string][]string)
 
 	for _, file := range request.Files {
 		if filesForType, isPresent := result[file.Mimetype]; isPresent {
-			result[file.Mimetype] = append(filesForType, file.FileKey)
+			result[file.Mimetype] = append(filesForType, file.FileName)
 		} else {
-			result[file.Mimetype] = []string{file.FileKey}
+			result[file.Mimetype] = []string{file.FileName}
 		}
 	}
 

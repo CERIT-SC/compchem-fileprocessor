@@ -3,8 +3,8 @@ package list_workflows
 import (
 	"testing"
 
-	"fi.muni.cz/invenio-file-processor/v2/api/availabledtos"
 	"fi.muni.cz/invenio-file-processor/v2/config"
+	"fi.muni.cz/invenio-file-processor/v2/services"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 )
@@ -14,22 +14,22 @@ func TestConvertRequest_ThreeMimeTypes_ThreeMapKeys(t *testing.T) {
 	JSON := "application/json"
 	IMAGE := "image/jpeg"
 
-	request := availabledtos.AvailableWorkflowsRequest{
-		Files: []availabledtos.KeyAndType{
+	request := AvailableWorkflowsRequest{
+		Files: []services.File{
 			{
-				FileKey:  "test1.txt",
+				FileName: "test1.txt",
 				Mimetype: TEXT_PLAIN,
 			},
 			{
-				FileKey:  "test2.txt",
+				FileName: "test2.txt",
 				Mimetype: TEXT_PLAIN,
 			},
 			{
-				FileKey:  "test.jpeg",
+				FileName: "test.jpeg",
 				Mimetype: IMAGE,
 			},
 			{
-				FileKey:  "request.json",
+				FileName: "request.json",
 				Mimetype: JSON,
 			},
 		},
@@ -96,22 +96,22 @@ func TestAvailableWorkflows_TwoConfigs_ReturnsCorrectResponse(t *testing.T) {
 	JSON := "application/json"
 	IMAGE := "image/jpeg"
 
-	request := availabledtos.AvailableWorkflowsRequest{
-		Files: []availabledtos.KeyAndType{
+	request := AvailableWorkflowsRequest{
+		Files: []services.File{
 			{
-				FileKey:  "test1.txt",
+				FileName: "test1.txt",
 				Mimetype: TEXT_PLAIN,
 			},
 			{
-				FileKey:  "test2.txt",
+				FileName: "test2.txt",
 				Mimetype: TEXT_PLAIN,
 			},
 			{
-				FileKey:  "test.jpeg",
+				FileName: "test.jpeg",
 				Mimetype: IMAGE,
 			},
 			{
-				FileKey:  "request.json",
+				FileName: "request.json",
 				Mimetype: JSON,
 			},
 		},

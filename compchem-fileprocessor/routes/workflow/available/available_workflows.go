@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"fi.muni.cz/invenio-file-processor/v2/api/availabledtos"
 	"fi.muni.cz/invenio-file-processor/v2/config"
 	"fi.muni.cz/invenio-file-processor/v2/routes/common"
 	"fi.muni.cz/invenio-file-processor/v2/services/list_workflows"
@@ -34,8 +33,8 @@ func AvailableWorkflowsHandler(
 				w,
 				r,
 				http.StatusOK,
-				availabledtos.AvailableWorkflowsResponse{
-					Workflows: []availabledtos.AvailableWorkflow{},
+				list_workflows.AvailableWorkflowsResponse{
+					Workflows: []list_workflows.AvailableWorkflow{},
 				},
 			)
 			return
@@ -47,12 +46,12 @@ func AvailableWorkflowsHandler(
 	})
 }
 
-func validateBody(req *availabledtos.AvailableWorkflowsRequest) error {
+func validateBody(req *list_workflows.AvailableWorkflowsRequest) error {
 	errors := []string{}
 
 	for i, file := range req.Files {
-		if file.FileKey == "" {
-			errors = append(errors, fmt.Sprintf("missing file_key at: %d", i))
+		if file.FileName == "" {
+			errors = append(errors, fmt.Sprintf("missing filename at: %d", i))
 		}
 		if file.Mimetype == "" {
 			errors = append(errors, fmt.Sprintf("missing mimetype at: %d", i))
