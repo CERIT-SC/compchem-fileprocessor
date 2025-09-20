@@ -44,8 +44,6 @@ func AvailableWorkflowsHandler(
 		response := list_workflows.AvailableWorkflows(logger, reqBody, configs)
 
 		common.EncodeResponse(w, r, http.StatusOK, response)
-
-		return
 	})
 }
 
