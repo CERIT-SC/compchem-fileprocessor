@@ -28,7 +28,7 @@ func StartAllWorkflows(
 	recordId string,
 	files []services.File,
 	configs []config.WorkflowConfig,
-) error {
+) (StartWorkflowsResponse, error) {
 	workflows, err := createWorkflowsWithAllConfigs(
 		ctx,
 		logger,
@@ -39,14 +39,19 @@ func StartAllWorkflows(
 		baseUrl,
 	)
 	if err != nil {
-		return err
+		return StartWorkflowsResponse{}, err
 	}
 
 	go func() {
 		submitAllWorkflows(ctx, logger, argoUrl, workflows)
 	}()
 
-	return nil
+	return StartWorkflowsResponse{
+		WorkflowNames: util.Map(
+			workflows,
+			func(wf *argodtos.Workflow) string { return wf.Metadata.Name },
+		),
+	}, nil
 }
 
 func submitAllWorkflows(

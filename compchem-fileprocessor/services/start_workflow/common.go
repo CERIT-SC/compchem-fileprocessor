@@ -17,6 +17,10 @@ import (
 	"go.uber.org/zap"
 )
 
+type StartWorkflowsResponse struct {
+	WorkflowNames []string `json:"workflowNames"`
+}
+
 func submitWorkflow(
 	ctx context.Context,
 	logger *zap.Logger,

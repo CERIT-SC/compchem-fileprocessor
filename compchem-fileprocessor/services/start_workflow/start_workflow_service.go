@@ -12,12 +12,6 @@ import (
 	"go.uber.org/zap"
 )
 
-// for now one process for easch file type
-// TBD: wrap in transaction with isolation=REPEATABLE_READ, tx
-// get sequence number of workflow for this record increment by 1
-// insert the new file for record this service method is only for committed files so it won't exist
-// submit workflow to argo, if successfull also save compchem_workflow with argo identifier
-// use the transactional outbox pattern: write new workflow as ${name}-${recordId}-${sequence} status: submitting
 func StartWorkflow(
 	ctx context.Context,
 	logger *zap.Logger,
@@ -28,7 +22,7 @@ func StartWorkflow(
 	recordId string,
 	files []services.File,
 	configs []config.WorkflowConfig,
-) error {
+) (StartWorkflowsResponse, error) {
 	workflow, err := createWorkflowSingleConfig(
 		ctx,
 		logger,
@@ -40,7 +34,7 @@ func StartWorkflow(
 		baseUrl,
 	)
 	if err != nil {
-		return err
+		return StartWorkflowsResponse{}, err
 	}
 
 	// fire and forget?
@@ -48,7 +42,9 @@ func StartWorkflow(
 		submitWorkflow(ctx, logger, argoUrl, workflow)
 	}()
 
-	return nil
+	return StartWorkflowsResponse{
+		WorkflowNames: []string{workflow.Metadata.Name},
+	}, nil
 }
 
 func createWorkflowSingleConfig(

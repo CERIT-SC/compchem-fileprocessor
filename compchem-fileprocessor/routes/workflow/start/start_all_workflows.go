@@ -35,7 +35,7 @@ func PostAllWorkflowsHandler(
 			return
 		}
 
-		err = startworkflow_service.StartAllWorkflows(
+		response, err := startworkflow_service.StartAllWorkflows(
 			ctx,
 			logger,
 			pool,
@@ -53,11 +53,14 @@ func PostAllWorkflowsHandler(
 			return
 		}
 
-		logger.Info(
-			"File successfully submitted for processing",
-			zap.String("recordId", recordId),
-		)
-		w.WriteHeader(http.StatusCreated)
+		err = jsonapi.Encode(w, r, http.StatusCreated, response)
+		if err != nil {
+			logger.Error(
+				"Failed to Encode response for post all workflows handler",
+				zap.Any("response", response),
+				zap.Error(err),
+			)
+		}
 	})
 }
 
