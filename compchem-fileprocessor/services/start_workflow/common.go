@@ -26,23 +26,13 @@ type WorkflowContext struct {
 	WorkflowName string `json:"workflowName"`
 }
 
-func generateKeysToWorkflows(workflows []*argodtos.Workflow) (StartWorkflowsResponse, error) {
-	results := []WorkflowContext{}
-	for _, wf := range workflows {
-		secretKey, err := generateRandomString(256)
-		if err != nil {
-			return StartWorkflowsResponse{}, err
-		}
-
-		results = append(results, WorkflowContext{
-			SecretKey:    secretKey,
-			WorkflowName: wf.Metadata.Name,
-		})
+func generateKeyToWorkflow(fullWorkflowName string) (WorkflowContext, error) {
+	secretKey, err := generateRandomString(256)
+	if err != nil {
+		return WorkflowContext{}, err
 	}
 
-	return StartWorkflowsResponse{
-		WorkflowContexts: results,
-	}, nil
+	return WorkflowContext{SecretKey: secretKey, WorkflowName: fullWorkflowName}, nil
 }
 
 // credit to: https://gist.github.com/dopey/c69559607800d2f2f90b1b1ed4e550fb

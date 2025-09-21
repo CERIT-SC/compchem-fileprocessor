@@ -36,6 +36,7 @@ func TestBuildWorkflow_IntegrationTest(t *testing.T) {
 		baseUrl,
 		workflowName,
 		workflowId,
+		"mysecretkey",
 		recordId,
 		[]string{"test.txt", "test1.txt"},
 	)
@@ -59,12 +60,16 @@ func TestBuildWorkflow_IntegrationTest(t *testing.T) {
 						"value": "https://host-service.argo.svc.cluster.local:5000/api/experiments"
 					},
 					{
-						"name": "file-ids",
-						"value": "test.txt test1.txt"
-					},
-					{
 						"name": "record-id",
 						"value": "12345"
+					},
+					{
+						"name": "secret-key",
+						"value": "mysecretkey"
+					},
+					{
+						"name": "file-ids",
+						"value": "test.txt test1.txt"
 					}
 				]
 			},
@@ -89,6 +94,10 @@ func TestBuildWorkflow_IntegrationTest(t *testing.T) {
 										{
 											"name": "record-id",
 											"value": "{{workflow.parameters.record-id}}"
+										},
+										{
+											"name": "secret-key",
+											"value": "{{workflow.parameters.secret-key}}"
 										},
 										{
 											"name": "file-ids",
@@ -131,6 +140,10 @@ func TestBuildWorkflow_IntegrationTest(t *testing.T) {
 										{
 											"name": "record-id",
 											"value": "{{workflow.parameters.record-id}}"
+										},
+										{
+											"name": "secret-key",
+											"value": "{{workflow.parameters.secret-key}}"
 										},
 										{
 											"name": "workflow-name",
@@ -182,6 +195,10 @@ func TestBuildWorkflow_IntegrationTest(t *testing.T) {
 										{
 											"name": "record-id",
 											"value": "{{workflow.parameters.record-id}}"
+										},
+										{
+											"name": "secret-key",
+											"value": "{{workflow.parameters.secret-key}}"
 										},
 										{
 											"name": "workflow-name",

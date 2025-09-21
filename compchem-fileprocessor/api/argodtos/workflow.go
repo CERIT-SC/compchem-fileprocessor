@@ -41,7 +41,7 @@ type Dag struct {
 	Tasks []*Task `json:"tasks"`
 }
 
-func constructWorkflowName(workflowName string, recordId string, workflowId uint64) string {
+func ConstructFullWorkflowName(workflowName string, recordId string, workflowId uint64) string {
 	return fmt.Sprintf("%s-%s-%d", workflowName, recordId, workflowId)
 }
 
@@ -50,22 +50,29 @@ func BuildWorkflow(
 	baseUrl string,
 	workflowName string,
 	workflowId uint64,
+	secretKey string,
 	recordId string,
 	fileIds []string,
 ) *Workflow {
-	tasks := constructLinearDag(conf.ProcessingTemplates, workflowName, recordId, workflowId)
+	tasks := constructLinearDag(
+		conf.ProcessingTemplates,
+		workflowName,
+		recordId,
+		workflowId,
+	)
 
-	return newWorkflow(workflowName, recordId, baseUrl, workflowId, fileIds, tasks)
+	return newWorkflow(workflowName, recordId, baseUrl, workflowId, secretKey, fileIds, tasks)
 }
 
 func newWorkflow(workflowName string,
 	recordId string,
 	baseUrl string,
 	workflowId uint64,
+	secretKey string,
 	fileIds []string,
 	processingTasks []*Task,
 ) *Workflow {
-	fullName := constructWorkflowName(workflowName, recordId, workflowId)
+	fullName := ConstructFullWorkflowName(workflowName, recordId, workflowId)
 	return &Workflow{
 		ApiVersion: "argoproj.io/v1alpha1",
 		Kind:       "Workflow",
@@ -81,12 +88,16 @@ func newWorkflow(workflowName string,
 						Value: baseUrl,
 					},
 					{
-						Name:  "file-ids",
-						Value: strings.Join(fileIds, " "),
-					},
-					{
 						Name:  "record-id",
 						Value: recordId,
+					},
+					{
+						Name:  "secret-key",
+						Value: secretKey,
+					},
+					{
+						Name:  "file-ids",
+						Value: strings.Join(fileIds, " "),
 					},
 				},
 			},
@@ -124,7 +135,7 @@ func constructLinearDag(
 			workflowId,
 			task.Name,
 			cfg.Template,
-			constructWorkflowName(worfklowName, recordId, workflowId),
+			ConstructFullWorkflowName(worfklowName, recordId, workflowId),
 		)
 		result = append(result, task, writeTask)
 	}

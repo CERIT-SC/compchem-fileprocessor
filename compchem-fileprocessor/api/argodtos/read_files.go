@@ -27,6 +27,10 @@ func NewReadFilesWorkflow(
 					Value: "{{workflow.parameters.record-id}}",
 				},
 				{
+					Name:  "secret-key",
+					Value: "{{workflow.parameters.secret-key}}",
+				},
+				{
 					Name:  "file-ids",
 					Value: "{{workflow.parameters.file-ids}}",
 				},

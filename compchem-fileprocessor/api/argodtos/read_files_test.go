@@ -28,7 +28,7 @@ func TestReadFiles_AllArgumentsSupplied_ProperlyFormedTask(t *testing.T) {
 	assert.Equal(t, expectedTemplateRefTemplate, task.TemplateReference.Template)
 
 	// Verify parameters
-	assert.Equal(t, 3, len(task.Arguments.Parameters))
+	assert.Equal(t, 4, len(task.Arguments.Parameters))
 
 	// Check each parameter
 	assert.Equal(t, "base-url", task.Arguments.Parameters[0].Name)
@@ -37,8 +37,11 @@ func TestReadFiles_AllArgumentsSupplied_ProperlyFormedTask(t *testing.T) {
 	assert.Equal(t, "record-id", task.Arguments.Parameters[1].Name)
 	assert.Equal(t, "{{workflow.parameters.record-id}}", task.Arguments.Parameters[1].Value)
 
-	assert.Equal(t, "file-ids", task.Arguments.Parameters[2].Name)
-	assert.Equal(t, "{{workflow.parameters.file-ids}}", task.Arguments.Parameters[2].Value)
+	assert.Equal(t, "secret-key", task.Arguments.Parameters[2].Name)
+	assert.Equal(t, "{{workflow.parameters.secret-key}}", task.Arguments.Parameters[2].Value)
+
+	assert.Equal(t, "file-ids", task.Arguments.Parameters[3].Name)
+	assert.Equal(t, "{{workflow.parameters.file-ids}}", task.Arguments.Parameters[3].Value)
 }
 
 func TestReadFiles_AllArgumentsSupplied_ProperlyFormedJson(t *testing.T) {
@@ -71,6 +74,10 @@ func TestReadFiles_AllArgumentsSupplied_ProperlyFormedJson(t *testing.T) {
 				{
 					"name": "record-id",
 					"value": "{{workflow.parameters.record-id}}"
+				},
+				{
+					"name": "secret-key",
+					"value": "{{workflow.parameters.secret-key}}"
 				},
 				{
 					"name": "file-ids",

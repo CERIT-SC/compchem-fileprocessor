@@ -34,6 +34,10 @@ func NewWriteWorkflow(
 					Value: "{{workflow.parameters.record-id}}",
 				},
 				{
+					Name:  "secret-key",
+					Value: "{{workflow.parameters.secret-key}}",
+				},
+				{
 					Name:  "workflow-name",
 					Value: workflowFullName,
 				},
