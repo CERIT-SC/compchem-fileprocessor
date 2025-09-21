@@ -6,8 +6,10 @@ import (
 
 	"fi.muni.cz/invenio-file-processor/v2/api/argodtos"
 	"fi.muni.cz/invenio-file-processor/v2/config"
+	repository_common "fi.muni.cz/invenio-file-processor/v2/repository/common"
 	"fi.muni.cz/invenio-file-processor/v2/services"
 	"fi.muni.cz/invenio-file-processor/v2/util"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
 )
@@ -23,7 +25,7 @@ func StartWorkflow(
 	files []services.File,
 	configs []config.WorkflowConfig,
 ) (StartWorkflowsResponse, error) {
-	workflow, err := createWorkflowSingleConfig(
+	return createWorkflowSingleConfig(
 		ctx,
 		logger,
 		pool,
@@ -32,19 +34,8 @@ func StartWorkflow(
 		recordId,
 		files,
 		baseUrl,
+		argoUrl,
 	)
-	if err != nil {
-		return StartWorkflowsResponse{}, err
-	}
-
-	// fire and forget?
-	go func() {
-		submitWorkflow(ctx, logger, argoUrl, workflow)
-	}()
-
-	return StartWorkflowsResponse{
-		WorkflowNames: []string{workflow.Metadata.Name},
-	}, nil
 }
 
 func createWorkflowSingleConfig(
@@ -56,22 +47,27 @@ func createWorkflowSingleConfig(
 	recordId string,
 	files []services.File,
 	baseUrl string,
-) (*argodtos.Workflow, error) {
+	argoUrl string,
+) (StartWorkflowsResponse, error) {
+	tx, err := pool.BeginTx(ctx, pgx.TxOptions{
+		IsoLevel: pgx.RepeatableRead,
+	})
+
 	conf, err := findWorkflowConfig(configs, name, files)
 	if err != nil {
-		return nil, err
+		return StartWorkflowsResponse{}, err
 	}
 
 	workflowEntity, err := addSingleWorkflowToDb(
 		ctx,
 		logger,
-		pool,
+		tx,
 		recordId,
 		files,
 		conf.Name,
 	)
 	if err != nil {
-		return nil, err
+		return StartWorkflowsResponse{}, err
 	}
 
 	workflow := argodtos.BuildWorkflow(
@@ -83,7 +79,23 @@ func createWorkflowSingleConfig(
 		util.Map(files, func(file services.File) string { return file.FileName }),
 	)
 
-	return workflow, nil
+	response, err := generateKeysToWorkflows([]*argodtos.Workflow{workflow})
+	if err != nil {
+		logger.Error("Error when generating workflow keys", zap.Error(err))
+		tx.Rollback(ctx)
+		return StartWorkflowsResponse{}, err
+	}
+
+	err = repository_common.CommitTx(ctx, tx, logger)
+	if err != nil {
+		return StartWorkflowsResponse{}, err
+	}
+
+	go func() {
+		submitWorkflow(ctx, logger, argoUrl, workflow)
+	}()
+
+	return response, nil
 }
 
 func findWorkflowConfig(

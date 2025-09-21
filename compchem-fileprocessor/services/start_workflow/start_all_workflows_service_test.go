@@ -202,12 +202,23 @@ func (s *startAllWorkflowsTestSuite) TestCreateWorkflowsWithAllConfigs_TwoConfig
 			},
 		},
 		"http://localhost:7000",
+		"http://does.not.matter.com",
 	)
 
 	assert.NoError(t, err)
-	assert.Len(t, workflows, 2, "workflows returned should be 2")
-	assert.Equal(t, "count-words-ej26y-ad28j-1", workflows[0].Metadata.Name)
-	assert.Equal(t, "compress-images-ej26y-ad28j-2", workflows[1].Metadata.Name)
+	assert.Len(t, workflows.WorkflowContexts, 2, "workflows returned should be 2")
+	assert.Equal(t, "count-words-ej26y-ad28j-1", workflows.WorkflowContexts[0].WorkflowName)
+	assert.NotEmpty(
+		t,
+		workflows.WorkflowContexts[0].SecretKey,
+		"should have some sort of not empty secret key",
+	)
+	assert.Equal(t, "compress-images-ej26y-ad28j-2", workflows.WorkflowContexts[1].WorkflowName)
+	assert.NotEmpty(
+		t,
+		workflows.WorkflowContexts[1].SecretKey,
+		"should have some sort of not empty secret key",
+	)
 
 	file, err := repository_common.QueryOne[file_repository.ExistingCompchemFile](
 		ctx,

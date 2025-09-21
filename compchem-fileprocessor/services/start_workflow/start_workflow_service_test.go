@@ -91,10 +91,16 @@ func (s *startWorkflowServiceTestSuite) TestCreateWorkflow_WorkflowCreated_DbInC
 			},
 		},
 		"http://localhost:7000",
+		"https://example.argo.url.com",
 	)
 
 	assert.NoError(t, err)
-	assert.Equal(t, "count-words-ej26y-ad28j-1", wf.Metadata.Name)
+	assert.Equal(t, "count-words-ej26y-ad28j-1", wf.WorkflowContexts[0].WorkflowName)
+	assert.NotEmpty(
+		t,
+		wf.WorkflowContexts[0].SecretKey,
+		"should have some sort of not empty secret key",
+	)
 
 	file, err := repository_common.QueryOne[file_repository.ExistingCompchemFile](
 		ctx,

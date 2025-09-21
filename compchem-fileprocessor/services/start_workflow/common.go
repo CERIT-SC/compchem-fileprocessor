@@ -2,23 +2,62 @@ package startworkflow_service
 
 import (
 	"context"
+	"crypto/rand"
 	"fmt"
+	"math/big"
 	"strings"
 
 	"fi.muni.cz/invenio-file-processor/v2/api/argodtos"
 	"fi.muni.cz/invenio-file-processor/v2/httpclient"
-	repository_common "fi.muni.cz/invenio-file-processor/v2/repository/common"
 	"fi.muni.cz/invenio-file-processor/v2/repository/file_repository"
 	"fi.muni.cz/invenio-file-processor/v2/repository/workflow_repository"
 	"fi.muni.cz/invenio-file-processor/v2/repository/workflowfile_repository"
 	"fi.muni.cz/invenio-file-processor/v2/services"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
 )
 
 type StartWorkflowsResponse struct {
-	WorkflowNames []string `json:"workflowNames"`
+	WorkflowContexts []WorkflowContext `json:"workflowContexts"`
+}
+
+type WorkflowContext struct {
+	SecretKey    string `json:"secretKey"`
+	WorkflowName string `json:"workflowName"`
+}
+
+func generateKeysToWorkflows(workflows []*argodtos.Workflow) (StartWorkflowsResponse, error) {
+	results := []WorkflowContext{}
+	for _, wf := range workflows {
+		secretKey, err := generateRandomString(256)
+		if err != nil {
+			return StartWorkflowsResponse{}, err
+		}
+
+		results = append(results, WorkflowContext{
+			SecretKey:    secretKey,
+			WorkflowName: wf.Metadata.Name,
+		})
+	}
+
+	return StartWorkflowsResponse{
+		WorkflowContexts: results,
+	}, nil
+}
+
+// credit to: https://gist.github.com/dopey/c69559607800d2f2f90b1b1ed4e550fb
+func generateRandomString(n int) (string, error) {
+	const letters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-"
+	ret := make([]byte, n)
+	for i := 0; i < n; i++ {
+		num, err := rand.Int(rand.Reader, big.NewInt(int64(len(letters))))
+		if err != nil {
+			return "", err
+		}
+		ret[i] = letters[num.Int64()]
+	}
+
+	return string(ret), nil
 }
 
 func submitWorkflow(
@@ -100,27 +139,14 @@ func createWorkflowFile(
 func addSingleWorkflowToDb(
 	ctx context.Context,
 	logger *zap.Logger,
-	pool *pgxpool.Pool,
+	tx pgx.Tx,
 	recordId string,
 	files []services.File,
 	workflowName string,
 ) (*workflow_repository.ExistingWorfklowEntity, error) {
-	tx, err := pool.BeginTx(ctx, pgx.TxOptions{
-		IsoLevel: pgx.RepeatableRead,
-	})
-	if err != nil {
-		logger.Error("Error when starting transaction")
-		return nil, err
-	}
-
 	workflow, err := addWorkflowInternal(ctx, logger, tx, recordId, files, workflowName)
 	if err != nil {
 		tx.Rollback(ctx)
-		return nil, err
-	}
-
-	err = repository_common.CommitTx(ctx, tx, logger)
-	if err != nil {
 		return nil, err
 	}
 

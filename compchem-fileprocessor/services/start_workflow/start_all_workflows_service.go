@@ -37,21 +37,13 @@ func StartAllWorkflows(
 		recordId,
 		files,
 		baseUrl,
+		argoUrl,
 	)
 	if err != nil {
 		return StartWorkflowsResponse{}, err
 	}
 
-	go func() {
-		submitAllWorkflows(ctx, logger, argoUrl, workflows)
-	}()
-
-	return StartWorkflowsResponse{
-		WorkflowNames: util.Map(
-			workflows,
-			func(wf *argodtos.Workflow) string { return wf.Metadata.Name },
-		),
-	}, nil
+	return workflows, nil
 }
 
 func submitAllWorkflows(
@@ -73,10 +65,11 @@ func createWorkflowsWithAllConfigs(
 	recordId string,
 	files []services.File,
 	baseUrl string,
-) ([]*argodtos.Workflow, error) {
+	argoUrl string,
+) (StartWorkflowsResponse, error) {
 	configsWithFiles, err := findAllMatchingConfigs(configs, files)
 	if err != nil {
-		return nil, err
+		return StartWorkflowsResponse{}, err
 	}
 
 	workflows := []*argodtos.Workflow{}
@@ -86,7 +79,7 @@ func createWorkflowsWithAllConfigs(
 	})
 	if err != nil {
 		logger.Error("Error when starting transaction")
-		return nil, err
+		return StartWorkflowsResponse{}, err
 	}
 
 	for _, configAndFiles := range configsWithFiles {
@@ -100,7 +93,7 @@ func createWorkflowsWithAllConfigs(
 		)
 		if err != nil {
 			tx.Rollback(ctx)
-			return nil, err
+			return StartWorkflowsResponse{}, err
 		}
 
 		workflow := argodtos.BuildWorkflow(
@@ -115,12 +108,23 @@ func createWorkflowsWithAllConfigs(
 		workflows = append(workflows, workflow)
 	}
 
-	err = repository_common.CommitTx(ctx, tx, logger)
+	results, err := generateKeysToWorkflows(workflows)
 	if err != nil {
-		return nil, err
+		logger.Error("Error occurred when generating workflow keys", zap.Error(err))
+		tx.Rollback(ctx)
+		return StartWorkflowsResponse{}, err
 	}
 
-	return workflows, nil
+	err = repository_common.CommitTx(ctx, tx, logger)
+	if err != nil {
+		return StartWorkflowsResponse{}, err
+	}
+
+	go func() {
+		submitAllWorkflows(ctx, logger, argoUrl, workflows)
+	}()
+
+	return results, nil
 }
 
 func findAllMatchingConfigs(
