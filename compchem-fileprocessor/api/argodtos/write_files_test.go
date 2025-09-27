@@ -15,13 +15,13 @@ func TestWriteFiles_AllArgumentsSupplied_ProperlyFormedTask(t *testing.T) {
 	workflowId := uint64(2)
 	previousTaskTemplate := "count-words"
 	previousTask := "count-words-12345-2"
-	expectedName := fmt.Sprintf(WriteFilesTemplate, previousTaskTemplate, recordId, workflowId)
+	expectedName := fmt.Sprintf(writeFilesTemplate, previousTaskTemplate, recordId, workflowId)
 	expectedDependencies := []string{previousTask}
 	expectedTemplateRefName := "write-files-template"
 	expectedTemplateRefTemplate := "write-files"
 
 	// Act
-	task := NewWriteWorkflow(recordId, workflowId, previousTask, previousTaskTemplate, previousTask)
+	task := newWriteWorkflow(recordId, workflowId, previousTask, previousTaskTemplate, previousTask)
 
 	// Assert
 	assert.Equal(t, expectedName, task.Name)
@@ -64,7 +64,7 @@ func TestWriteFiles_AllArgumentsSupplied_ProperlyFormedJson(t *testing.T) {
 	workflowId := uint64(2)
 	previousTaskTemplate := "count-words"
 	previousTask := "count-words-12345-2"
-	task := NewWriteWorkflow(recordId, workflowId, previousTask, previousTaskTemplate, previousTask)
+	task := newWriteWorkflow(recordId, workflowId, previousTask, previousTaskTemplate, previousTask)
 
 	// Act
 	taskJson, err := json.Marshal(task)

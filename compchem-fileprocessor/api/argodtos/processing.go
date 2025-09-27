@@ -2,7 +2,7 @@ package argodtos
 
 import "fmt"
 
-func NewProcessingStep(
+func newProcessingStep(
 	recordId string,
 	workflowId uint64,
 	previousTask string,

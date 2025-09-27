@@ -23,7 +23,7 @@ func TestProcessingStep_AllArgumentsSupplied_ProperlyFormedTask(t *testing.T) {
 	expectedDependencies := []string{previousTask}
 
 	// Act
-	task := NewProcessingStep(recordId, workflowId, previousTask, templateRef)
+	task := newProcessingStep(recordId, workflowId, previousTask, templateRef)
 
 	// Assert
 	assert.Equal(t, expectedName, task.Name)
@@ -54,7 +54,7 @@ func TestProcessingStep_AllArgumentsSupplied_ProperlyFormedJson(t *testing.T) {
 		Template: "count-words",
 	}
 
-	task := NewProcessingStep(recordId, workflowId, previousTask, templateRef)
+	task := newProcessingStep(recordId, workflowId, previousTask, templateRef)
 
 	// Act
 	taskJson, err := json.Marshal(task)

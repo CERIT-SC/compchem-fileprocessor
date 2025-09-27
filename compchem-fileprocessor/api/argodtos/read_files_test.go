@@ -13,13 +13,13 @@ func TestReadFiles_AllArgumentsSupplied_ProperlyFormedTask(t *testing.T) {
 	// Arrange
 	recordId := "recordId"
 	workflowId := uint64(1)
-	expectedName := fmt.Sprintf(ReadFilesTemplate, recordId, workflowId)
+	expectedName := fmt.Sprintf(readFilesTemplate, recordId, workflowId)
 	expectedDependencies := []string{}
 	expectedTemplateRefName := "read-files-template"
 	expectedTemplateRefTemplate := "read-files"
 
 	// Act
-	task := NewReadFilesWorkflow(recordId, workflowId)
+	task := newReadFilesWorkflow(recordId, workflowId)
 
 	// Assert
 	assert.Equal(t, expectedName, task.Name)
@@ -48,7 +48,7 @@ func TestReadFiles_AllArgumentsSupplied_ProperlyFormedJson(t *testing.T) {
 	// Arrange
 	recordId := "recordId"
 	workflowId := uint64(1)
-	task := NewReadFilesWorkflow(recordId, workflowId)
+	task := newReadFilesWorkflow(recordId, workflowId)
 
 	// Act
 	taskJson, err := json.Marshal(task)

@@ -2,18 +2,21 @@ package argodtos
 
 import "fmt"
 
-const readFilesTemplate = "read-files-%s-%d"
+const deleteTokenTemplate = "delete-token-%s-%d"
 
-func newReadFilesWorkflow(
+func newDeleteWorkflow(
 	recordId string,
 	workflowId uint64,
+	workflowFullName string,
+	secretKey string,
+	previousTasks []string,
 ) *Task {
 	return &Task{
-		Name:         fmt.Sprintf(readFilesTemplate, recordId, workflowId),
-		Dependencies: []string{},
+		Name:         fmt.Sprintf(deleteTokenTemplate, recordId, workflowId),
+		Dependencies: previousTasks,
 		TemplateReference: TemplateReference{
-			Name:     "read-files-template",
-			Template: "read-files",
+			Name:     "delete-token-template",
+			Template: "delete-token",
 		},
 		Arguments: ParametersAndArtifacts{
 			Artifacts: []Artifact{},
@@ -23,16 +26,12 @@ func newReadFilesWorkflow(
 					Value: "{{workflow.parameters.base-url}}",
 				},
 				{
-					Name:  "record-id",
-					Value: "{{workflow.parameters.record-id}}",
+					Name:  "workflow-name",
+					Value: workflowFullName,
 				},
 				{
 					Name:  "secret-key",
 					Value: "{{workflow.parameters.secret-key}}",
-				},
-				{
-					Name:  "file-ids",
-					Value: "{{workflow.parameters.file-ids}}",
 				},
 			},
 		},

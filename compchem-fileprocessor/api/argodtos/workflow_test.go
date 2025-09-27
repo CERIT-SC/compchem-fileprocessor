@@ -216,6 +216,31 @@ func TestBuildWorkflow_IntegrationTest(t *testing.T) {
 										}
 									]
 								}
+							},
+							{
+								"name": "delete-token-12345-2",
+								"dependencies": ["write-files-count-words-12345-2", "write-files-count-words-advanced-12345-2"],
+								"templateRef": {
+									"name": "delete-token-template",
+									"template": "delete-token"
+								},
+								"arguments": {
+									"parameters": [
+										{
+											"name": "base-url",
+											"value": "{{workflow.parameters.base-url}}"
+										},
+										{
+											"name": "workflow-name",
+											"value": "read-count-write-12345-2"
+										},
+										{
+											"name": "secret-key",
+											"value": "{{workflow.parameters.secret-key}}"
+										}
+									],
+									"artifacts": []
+								}
 							}
 						]
 					}

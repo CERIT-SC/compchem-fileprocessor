@@ -59,6 +59,7 @@ func BuildWorkflow(
 		workflowName,
 		recordId,
 		workflowId,
+		secretKey,
 	)
 
 	return newWorkflow(workflowName, recordId, baseUrl, workflowId, secretKey, fileIds, tasks)
@@ -118,27 +119,40 @@ func constructLinearDag(
 	worfklowName string,
 	recordId string,
 	workflowId uint64,
+	secretKey string,
 ) []*Task {
 	result := []*Task{}
+	deleteDependencies := []string{}
 
-	readStep := NewReadFilesWorkflow(recordId, workflowId)
+	readStep := newReadFilesWorkflow(recordId, workflowId)
 	result = append(result, readStep)
+	fullWorkflowName := ConstructFullWorkflowName(worfklowName, recordId, workflowId)
 
 	// each processing task executed after write task with its own write task
 	for _, cfg := range conf {
-		task := NewProcessingStep(recordId, workflowId, readStep.Name, &TemplateReference{
+		task := newProcessingStep(recordId, workflowId, readStep.Name, &TemplateReference{
 			Name:     cfg.Name,
 			Template: cfg.Template,
 		})
-		writeTask := NewWriteWorkflow(
+		writeTask := newWriteWorkflow(
 			recordId,
 			workflowId,
 			task.Name,
 			cfg.Template,
-			ConstructFullWorkflowName(worfklowName, recordId, workflowId),
+			fullWorkflowName,
 		)
 		result = append(result, task, writeTask)
+		deleteDependencies = append(deleteDependencies, writeTask.Name)
 	}
+
+	revokeTokenStep := newDeleteWorkflow(
+		recordId,
+		workflowId,
+		fullWorkflowName,
+		secretKey,
+		deleteDependencies,
+	)
+	result = append(result, revokeTokenStep)
 
 	return result
 }

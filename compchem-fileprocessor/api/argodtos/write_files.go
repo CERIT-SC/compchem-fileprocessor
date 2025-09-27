@@ -2,9 +2,9 @@ package argodtos
 
 import "fmt"
 
-const WriteFilesTemplate = "write-files-%s-%s-%d"
+const writeFilesTemplate = "write-files-%s-%s-%d"
 
-func NewWriteWorkflow(
+func newWriteWorkflow(
 	recordId string,
 	workflowId uint64,
 	previousTaskFullName string,
@@ -13,7 +13,7 @@ func NewWriteWorkflow(
 ) *Task {
 	return &Task{
 		Name: fmt.Sprintf(
-			WriteFilesTemplate,
+			writeFilesTemplate,
 			previousTaskTemplateName,
 			recordId,
 			workflowId,
