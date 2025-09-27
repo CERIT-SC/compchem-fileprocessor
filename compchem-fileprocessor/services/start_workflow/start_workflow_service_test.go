@@ -95,10 +95,10 @@ func (s *startWorkflowServiceTestSuite) TestCreateWorkflow_WorkflowCreated_DbInC
 	)
 
 	assert.NoError(t, err)
-	assert.Equal(t, "count-words-ej26y-ad28j-1", wf.WorkflowContexts[0].WorkflowName)
+	assert.Equal(t, "count-words-ej26y-ad28j-1", wf.WorkflowName)
 	assert.NotEmpty(
 		t,
-		wf.WorkflowContexts[0].SecretKey,
+		wf.SecretKey,
 		"should have some sort of not empty secret key",
 	)
 

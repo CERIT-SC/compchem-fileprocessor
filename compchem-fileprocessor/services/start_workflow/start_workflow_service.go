@@ -24,7 +24,7 @@ func StartWorkflow(
 	recordId string,
 	files []services.File,
 	configs []config.WorkflowConfig,
-) (StartWorkflowsResponse, error) {
+) (WorkflowContext, error) {
 	return createWorkflowSingleConfig(
 		ctx,
 		logger,
@@ -48,14 +48,14 @@ func createWorkflowSingleConfig(
 	files []services.File,
 	baseUrl string,
 	argoUrl string,
-) (StartWorkflowsResponse, error) {
+) (WorkflowContext, error) {
 	tx, err := pool.BeginTx(ctx, pgx.TxOptions{
 		IsoLevel: pgx.RepeatableRead,
 	})
 
 	conf, err := findWorkflowConfig(configs, name, files)
 	if err != nil {
-		return StartWorkflowsResponse{}, err
+		return WorkflowContext{}, err
 	}
 
 	workflowEntity, err := addSingleWorkflowToDb(
@@ -68,7 +68,7 @@ func createWorkflowSingleConfig(
 	)
 	if err != nil {
 		tx.Rollback(ctx)
-		return StartWorkflowsResponse{}, err
+		return WorkflowContext{}, err
 	}
 
 	context, err := generateKeyToWorkflow(
@@ -92,21 +92,19 @@ func createWorkflowSingleConfig(
 	if err != nil {
 		logger.Error("Error when generating workflow keys", zap.Error(err))
 		tx.Rollback(ctx)
-		return StartWorkflowsResponse{}, err
+		return WorkflowContext{}, err
 	}
 
 	err = repository_common.CommitTx(ctx, tx, logger)
 	if err != nil {
-		return StartWorkflowsResponse{}, err
+		return WorkflowContext{}, err
 	}
 
 	go func() {
 		submitWorkflow(ctx, logger, argoUrl, workflow)
 	}()
 
-	return StartWorkflowsResponse{
-		WorkflowContexts: []WorkflowContext{context},
-	}, nil
+	return context, nil
 }
 
 func findWorkflowConfig(
