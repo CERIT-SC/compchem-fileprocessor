@@ -9,20 +9,21 @@ spec:
     - name: base-url
     - name: record-id
     - name: file-ids
+    - name: secret-key
   templates:
   - name: read-files
     inputs:
       parameters:
       - name: base-url
       - name: record-id
-      - secret: secret-key
+      - name: secret-key
       - name: file-ids
     container:
-      image: xkollar173/argo-read-files:0.0.4
+      image: xkollar173/argo-read-files:0.0.7
       command: [sh, "-c"]
       args:
         - |
-          ./read-files.sh "{{inputs.parameters.base-url}}" "{{inputs.parameters.record-id}}" "{{inputs.parameters.file-ids}}"
+          ./read-files.sh "{{inputs.parameters.base-url}}" "{{inputs.parameters.record-id}}" "{{inputs.parameters.secret-key}}" "{{inputs.parameters.file-ids}}"
     outputs:
       artifacts:
       - name: output-files
