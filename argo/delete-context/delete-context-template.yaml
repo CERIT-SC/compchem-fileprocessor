@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: delete-context-template
+spec:
+  entrypoint: delete-context
+  arguments:
+    parameters:
+    - name: base-url
+    - name: workflow-name
+    - name: secret-key
+  templates:
+  - name: delete-context
+    inputs:
+      parameters:
+      - name: base-url
+      - name: workflow-name
+      - name: secret-key
+    container:
+      image: xkollar173/argo-delete-context:0.0.1
+      command: [sh, "-c"]
+      args:
+        - |
+          ./delete-context.sh "{{inputs.parameters.base-url}}" "{{inputs.parameters.workflow-name}}" "{{inputs.parameters.secret-key}}"
