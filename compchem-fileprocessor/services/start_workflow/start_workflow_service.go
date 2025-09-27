@@ -71,9 +71,7 @@ func createWorkflowSingleConfig(
 		return WorkflowContext{}, err
 	}
 
-	context, err := generateKeyToWorkflow(
-		argodtos.ConstructFullWorkflowName(name, recordId, workflowEntity.Id),
-	)
+	secretKey, err := generateKeyToWorkflow()
 	if err != nil {
 		logger.Error("Error when generating workflow context key", zap.Error(err))
 		tx.Rollback(ctx)
@@ -84,7 +82,7 @@ func createWorkflowSingleConfig(
 		baseUrl,
 		workflowEntity.WorkflowName,
 		workflowEntity.WorkflowSeqId,
-		context.SecretKey,
+		secretKey,
 		recordId,
 		util.Map(files, func(file services.File) string { return file.FileName }),
 	)
@@ -104,7 +102,10 @@ func createWorkflowSingleConfig(
 		submitWorkflow(ctx, logger, argoUrl, workflow)
 	}()
 
-	return context, nil
+	return WorkflowContext{
+		SecretKey:    secretKey,
+		WorkflowName: workflow.Metadata.Name,
+	}, nil
 }
 
 func findWorkflowConfig(

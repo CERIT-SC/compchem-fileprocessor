@@ -24,7 +24,7 @@ for FILE_PATH in "$FILES_DIR"/*; do
   echo "Uploading file: $FILE_NAME"
 
   echo "Uploading content"
-    curl -f -k -H "Host: localhost" -H "Content-Type: application/octet-stream" -X POST "${BASE_URL}/${RECORD_ID}/draft/files/${FILE_NAME}/workflow/commit?secret_key=${SECRET_KEY}" \
+    curl -f -k -H "Host: localhost" -H "Content-Type: application/octet-stream" -X POST "${BASE_URL}/experiments/${RECORD_ID}/draft/files/${FILE_NAME}/workflow/commit?secret_key=${SECRET_KEY}" \
     --data-binary "@${FILE_PATH}" || { echo "Failed to upload content for $FILE_NAME"; exit 1; }
 
 done

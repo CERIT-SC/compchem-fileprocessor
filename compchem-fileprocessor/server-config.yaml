@@ -9,7 +9,7 @@ argo-workflows:
   namespace: "argo"
 
 compchem:
-  url: https://host-service.argo.svc.cluster.local:5000/api/experiments
+  url: https://host-service.argo.svc.cluster.local:5000/api
 
 migrations: "file://migrations"
 

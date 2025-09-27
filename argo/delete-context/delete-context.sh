@@ -12,6 +12,7 @@ if [ -z "$BASE_URL" ] || [ -z "$WORKFLOW_NAME" ] || [ -z "$SECRET_KEY" ]; then
 fi
 
 echo "Deleting context for workflow: $WORKFLOW_NAME"
+echo "${BASE_URL}/workflows/${WORKFLOW_NAME}/context?secret_key=${SECRET_KEY}"
 
 curl -f -k -H "Host: localhost" -X DELETE "${BASE_URL}/workflows/${WORKFLOW_NAME}/context?secret_key=${SECRET_KEY}" || {
   echo "Failed to delete context for workflow $WORKFLOW_NAME"

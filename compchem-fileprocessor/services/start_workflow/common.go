@@ -26,13 +26,13 @@ type WorkflowContext struct {
 	WorkflowName string `json:"workflowName"`
 }
 
-func generateKeyToWorkflow(fullWorkflowName string) (WorkflowContext, error) {
+func generateKeyToWorkflow() (string, error) {
 	secretKey, err := generateRandomString(256)
 	if err != nil {
-		return WorkflowContext{}, err
+		return "", err
 	}
 
-	return WorkflowContext{SecretKey: secretKey, WorkflowName: fullWorkflowName}, nil
+	return secretKey, nil
 }
 
 // credit to: https://gist.github.com/dopey/c69559607800d2f2f90b1b1ed4e550fb

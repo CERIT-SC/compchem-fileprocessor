@@ -92,13 +92,7 @@ func createWorkflowsWithAllConfigs(
 			return StartWorkflowsResponse{}, err
 		}
 
-		fullName := argodtos.ConstructFullWorkflowName(
-			createdWorkflow.WorkflowName,
-			recordId,
-			createdWorkflow.Id,
-		)
-
-		context, err := generateKeyToWorkflow(fullName)
+		secretKey, err := generateKeyToWorkflow()
 		if err != nil {
 			logger.Error("Error when generating workflow context", zap.Error(err))
 			tx.Rollback(ctx)
@@ -110,13 +104,16 @@ func createWorkflowsWithAllConfigs(
 			baseUrl,
 			createdWorkflow.WorkflowName,
 			createdWorkflow.WorkflowSeqId,
-			context.SecretKey,
+			secretKey,
 			recordId,
 			util.Map(files, func(file services.File) string { return file.FileName }),
 		)
 
 		workflows = append(workflows, workflow)
-		contexts = append(contexts, context)
+		contexts = append(contexts, WorkflowContext{
+			SecretKey:    secretKey,
+			WorkflowName: workflow.Metadata.Name,
+		})
 	}
 
 	err = repository_common.CommitTx(ctx, tx, logger)

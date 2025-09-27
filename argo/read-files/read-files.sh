@@ -16,7 +16,7 @@ DOWNLOAD_DIR="/output"
 mkdir -p $DOWNLOAD_DIR
 
 for FILE_ID in "$@"; do
-  DOWNLOAD_URL="${URL}/${RECORD_ID}/draft/files/${FILE_ID}/workflow/content?secret_key=${SECRET}"
+  DOWNLOAD_URL="${URL}/experiments/${RECORD_ID}/draft/files/${FILE_ID}/workflow/content?secret_key=${SECRET}"
   OUTPUT_FILE="${DOWNLOAD_DIR}/${FILE_ID}"
   echo "Downloading from: $DOWNLOAD_URL"
   echo "Saving to: $OUTPUT_FILE"
