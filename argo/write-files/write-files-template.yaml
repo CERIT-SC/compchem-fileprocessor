@@ -20,6 +20,7 @@ spec:
           - name: record-id
           - name: workflow-name
           - name: task-discriminator
+          - name: secret-key
         artifacts:
           - name: input-files
             path: /input

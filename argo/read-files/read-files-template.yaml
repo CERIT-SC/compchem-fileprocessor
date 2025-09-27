@@ -15,6 +15,7 @@ spec:
       parameters:
       - name: base-url
       - name: record-id
+      - secret: secret-key
       - name: file-ids
     container:
       image: xkollar173/argo-read-files:0.0.4
