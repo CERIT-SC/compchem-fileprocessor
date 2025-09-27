@@ -2,21 +2,20 @@ package argodtos
 
 import "fmt"
 
-const deleteTokenTemplate = "delete-token-%s-%d"
+const deleteContextTemplate = "delete-context-%s-%d"
 
 func newDeleteWorkflow(
 	recordId string,
 	workflowId uint64,
 	workflowFullName string,
-	secretKey string,
 	previousTasks []string,
 ) *Task {
 	return &Task{
-		Name:         fmt.Sprintf(deleteTokenTemplate, recordId, workflowId),
+		Name:         fmt.Sprintf(deleteContextTemplate, recordId, workflowId),
 		Dependencies: previousTasks,
 		TemplateReference: TemplateReference{
-			Name:     "delete-token-template",
-			Template: "delete-token",
+			Name:     "delete-context-template",
+			Template: "delete-context",
 		},
 		Arguments: ParametersAndArtifacts{
 			Artifacts: []Artifact{},

@@ -149,7 +149,6 @@ func constructLinearDag(
 		recordId,
 		workflowId,
 		fullWorkflowName,
-		secretKey,
 		deleteDependencies,
 	)
 	result = append(result, revokeTokenStep)

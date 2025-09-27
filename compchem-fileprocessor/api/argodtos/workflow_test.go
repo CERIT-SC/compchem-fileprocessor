@@ -218,11 +218,11 @@ func TestBuildWorkflow_IntegrationTest(t *testing.T) {
 								}
 							},
 							{
-								"name": "delete-token-12345-2",
+								"name": "delete-context-12345-2",
 								"dependencies": ["write-files-count-words-12345-2", "write-files-count-words-advanced-12345-2"],
 								"templateRef": {
-									"name": "delete-token-template",
-									"template": "delete-token"
+									"name": "delete-context-template",
+									"template": "delete-context"
 								},
 								"arguments": {
 									"parameters": [

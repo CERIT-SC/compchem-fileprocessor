@@ -13,20 +13,19 @@ func TestDeleteWorkflow_AllArgumentsSupplied_ProperlyFormedTask(t *testing.T) {
 	recordId := "12345"
 	workflowId := uint64(2)
 	workflowFullName := "read-count-write-12345-2"
-	secretKey := "mysecretkey"
 	previousTasks := []string{"write-files-task1", "write-files-task2"}
 
-	expectedName := fmt.Sprintf(deleteTokenTemplate, recordId, workflowId)
+	expectedName := fmt.Sprintf(deleteContextTemplate, recordId, workflowId)
 	expectedDependencies := previousTasks
 
 	// Act
-	task := newDeleteWorkflow(recordId, workflowId, workflowFullName, secretKey, previousTasks)
+	task := newDeleteWorkflow(recordId, workflowId, workflowFullName, previousTasks)
 
 	// Assert
 	assert.Equal(t, expectedName, task.Name)
 	assert.Equal(t, expectedDependencies, task.Dependencies)
-	assert.Equal(t, "delete-token-template", task.TemplateReference.Name)
-	assert.Equal(t, "delete-token", task.TemplateReference.Template)
+	assert.Equal(t, "delete-context-template", task.TemplateReference.Name)
+	assert.Equal(t, "delete-context", task.TemplateReference.Template)
 
 	// Verify artifacts is empty
 	assert.Equal(t, 0, len(task.Arguments.Artifacts))
@@ -52,10 +51,9 @@ func TestDeleteWorkflow_AllArgumentsSupplied_ProperlyFormedJson(t *testing.T) {
 	recordId := "12345"
 	workflowId := uint64(2)
 	workflowFullName := "read-count-write-12345-2"
-	secretKey := "mysecretkey"
 	previousTasks := []string{"write-files-task1", "write-files-task2"}
 
-	task := newDeleteWorkflow(recordId, workflowId, workflowFullName, secretKey, previousTasks)
+	task := newDeleteWorkflow(recordId, workflowId, workflowFullName, previousTasks)
 
 	// Act
 	taskJson, err := json.Marshal(task)
@@ -65,11 +63,11 @@ func TestDeleteWorkflow_AllArgumentsSupplied_ProperlyFormedJson(t *testing.T) {
 
 	// Define expected JSON
 	expectedJson := `{
-		"name": "delete-token-12345-2",
+		"name": "delete-context-12345-2",
 		"dependencies": ["write-files-task1", "write-files-task2"],
 		"templateRef": {
-			"name": "delete-token-template",
-			"template": "delete-token"
+			"name": "delete-context-template",
+			"template": "delete-context"
 		},
 		"arguments": {
 			"parameters": [
@@ -114,14 +112,13 @@ func TestDeleteWorkflow_EmptyPreviousTasks_EmptyDependencies(t *testing.T) {
 	recordId := "54321"
 	workflowId := uint64(5)
 	workflowFullName := "test-workflow-54321-5"
-	secretKey := "anothersecret"
 	previousTasks := []string{}
 
 	// Act
-	task := newDeleteWorkflow(recordId, workflowId, workflowFullName, secretKey, previousTasks)
+	task := newDeleteWorkflow(recordId, workflowId, workflowFullName, previousTasks)
 
 	// Assert
-	assert.Equal(t, fmt.Sprintf(deleteTokenTemplate, recordId, workflowId), task.Name)
+	assert.Equal(t, fmt.Sprintf(deleteContextTemplate, recordId, workflowId), task.Name)
 	assert.Equal(t, []string{}, task.Dependencies)
 	assert.Equal(t, workflowFullName, task.Arguments.Parameters[1].Value)
 }
@@ -131,14 +128,13 @@ func TestDeleteWorkflow_SinglePreviousTask_SingleDependency(t *testing.T) {
 	recordId := "99999"
 	workflowId := uint64(1)
 	workflowFullName := "single-task-99999-1"
-	secretKey := "singletasksecret"
 	previousTasks := []string{"write-files-single-task"}
 
 	// Act
-	task := newDeleteWorkflow(recordId, workflowId, workflowFullName, secretKey, previousTasks)
+	task := newDeleteWorkflow(recordId, workflowId, workflowFullName, previousTasks)
 
 	// Assert
-	assert.Equal(t, fmt.Sprintf(deleteTokenTemplate, recordId, workflowId), task.Name)
+	assert.Equal(t, fmt.Sprintf(deleteContextTemplate, recordId, workflowId), task.Name)
 	assert.Equal(t, previousTasks, task.Dependencies)
 	assert.Equal(t, 1, len(task.Dependencies))
 	assert.Equal(t, "write-files-single-task", task.Dependencies[0])
@@ -146,5 +142,5 @@ func TestDeleteWorkflow_SinglePreviousTask_SingleDependency(t *testing.T) {
 
 func TestDeleteTokenTemplate_ConstantValue(t *testing.T) {
 	// Test the constant template format
-	assert.Equal(t, "delete-token-%s-%d", deleteTokenTemplate)
+	assert.Equal(t, "delete-context-%s-%d", deleteContextTemplate)
 }
