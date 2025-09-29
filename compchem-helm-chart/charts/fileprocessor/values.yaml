@@ -1,9 +1,13 @@
 enabled: true
 
 image:
-  repository: docker.io/xkollar173/fileprocessor
-  tag: "0.1.0"
+  repository: docker.io/xkollar173/compchem-fileprocessor
+  tag: "0.0.1"
   pullPolicy: Always
+
+# Image pull secrets for Docker Hub
+imagePullSecrets:
+  - name: docker-registry-secret
 
 replicaCount: 1
 
@@ -14,13 +18,13 @@ service:
 
 # Server configuration
 server:
-  host: localhost
+  host: 0.0.0.0
   port: 8062
   contextPath: "/api"
 
 argoWorkflows:
-  url: https://localhost:2746
-  namespace: "argo"
+  url: "http://compchem-argo-workflows-server.compchem.svc.cluster.local:2746"
+  namespace: "compchem"
 
 # CompChem service configuration
 compchem:
@@ -93,6 +97,15 @@ argo:
 postgres:
   # Enable PostgreSQL deployment for fileprocessor
   enabled: true
+
+  # Use bitnami legacy image
+  image:
+    registry: docker.io
+    repository: bitnamilegacy/postgresql
+    tag: "17.6.0-debian-12-r4"
+    pullPolicy: Always
+    pullSecrets:
+      - docker-registry-secret
 
   # PostgreSQL configuration
   # Refer to: https://github.com/bitnami/charts/tree/main/bitnami/postgresql

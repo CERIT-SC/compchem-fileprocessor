@@ -20,6 +20,10 @@ spec:
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
         checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
     spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: fileprocessor
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -36,21 +40,21 @@ spec:
                   key: postgres-password
           volumeMounts:
             - name: config
-              mountPath: /app/application.yaml
-              subPath: application.yaml
+              mountPath: /app/server-config.yaml
+              subPath: server-config.yaml
               readOnly: true
           livenessProbe:
             httpGet:
-              path: {{ .Values.server.contextPath }}/health
-              port: http
+              path: {{ .Values.server.contextPath }}/v1/health/liveness
+              port: 8062
             initialDelaySeconds: 30
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 3
           readinessProbe:
             httpGet:
-              path: {{ .Values.server.contextPath }}/health
-              port: http
+              path: {{ .Values.server.contextPath }}/v1/health/readiness
+              port: 8062
             initialDelaySeconds: 5
             periodSeconds: 5
             timeoutSeconds: 3

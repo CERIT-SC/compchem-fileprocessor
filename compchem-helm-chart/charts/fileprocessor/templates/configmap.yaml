@@ -6,7 +6,7 @@ metadata:
     {{- include "fileprocessor.labels" . | nindent 4 }}
     app.kubernetes.io/component: fileprocessor
 data:
-  application.yaml: |
+  server-config.yaml: |
     server:
       host: {{ .Values.server.host }}
       port: {{ .Values.server.port }}
@@ -18,11 +18,11 @@ data:
       url: {{ .Values.compchem.url }}
     migrations: {{ .Values.migrations | quote }}
     postgres:
-      host: {{ .Values.postgres.host }}
-      port: {{ .Values.postgres.port }}
-      database: {{ .Values.postgres.database }}
+      host: "{{ .Release.Name }}-postgres.{{ .Release.Namespace }}.svc.cluster.local"
+      port: {{ .Values.postgres.primary.service.ports.postgresql }}
+      database: {{ .Values.postgres.auth.database }}
       auth:
-        user: {{ .Values.postgres.auth.user }}
+        user: {{ .Values.postgres.auth.username }}
     {{- if .Values.workflows }}
     workflows:
       {{- toYaml .Values.workflows | nindent 6 }}
