@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "compchem.fullname" . }}-config
+  labels:
+    {{- include "compchem.labels" . | nindent 4 }}
+    app.kubernetes.io/component: compchem
+data:
+  # Database Configuration
+  INVENIO_DATABASE_HOST: {{ .Values.database.host }}
+  INVENIO_DATABASE_PORT: {{ .Values.database.port | quote }}
+  INVENIO_DATABASE_DBNAME: {{ .Values.database.name }}
+  INVENIO_DATABASE_USER: {{ .Values.database.user }}
+
+  # Redis Configuration
+  INVENIO_REDIS_HOST: {{ .Values.redis.host }}
+  INVENIO_REDIS_PORT: {{ .Values.redis.port | quote }}
+
+  # RabbitMQ Configuration
+  INVENIO_RABBIT_HOST: {{ .Values.rabbitmq.host }}
+  INVENIO_RABBIT_PORT: {{ .Values.rabbitmq.port | quote }}
+  INVENIO_RABBIT_ADMIN_PORT: {{ .Values.rabbitmq.adminPort | quote }}
+  INVENIO_RABBIT_USER: {{ .Values.rabbitmq.user }}
+
+  # OpenSearch Configuration
+  INVENIO_OPENSEARCH_HOST: {{ .Values.opensearch.host }}
+  INVENIO_OPENSEARCH_PORT: {{ .Values.opensearch.port | quote }}
+  INVENIO_OPENSEARCH_CLUSTER_PORT: {{ .Values.opensearch.clusterPort | quote }}
+
+  # S3/MinIO Configuration
+  INVENIO_S3_HOST: {{ .Values.s3.host }}
+  INVENIO_S3_PORT: {{ .Values.s3.port | quote }}
+  INVENIO_S3_PORT1: {{ .Values.s3.consolePort | quote }}
+  INVENIO_S3_BUCKET: {{ .Values.s3.bucket }}
+  INVENIO_S3_ENDPOINT_URL: {{ .Values.s3.endpointUrl }}
+
+  # Application Configuration
+  INVENIO_INSTANCE_PATH: {{ .Values.instancePath }}
+  INVENIO_STATIC_FOLDER: {{ .Values.staticFolder }}
+  INVENIO_THEME: {{ .Values.theme }}
+  FLASK_ENV: {{ .Values.flaskEnv }}
+  INVENIO_SECRET_KEY_FILE: "/etc/invenio/secrets/secret-key"
+
+  # Server Configuration
+  INVENIO_WSGI_MODULE: "invenio_app.wsgi:application"
+  INVENIO_WSGI_PROCESSES: {{ .Values.wsgi.processes | quote }}
+  INVENIO_WSGI_THREADS: {{ .Values.wsgi.threads | quote }}
+
+  # SSL Configuration
+  INVENIO_TLS_CERT_FILE: "/etc/ssl/certs/tls.crt"
+  INVENIO_TLS_KEY_FILE: "/etc/ssl/private/tls.key"

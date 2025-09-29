@@ -1,0 +1,9 @@
+dependencies:
+- name: fileprocessor
+  repository: file://charts/fileprocessor
+  version: 0.1.0
+- name: compchem
+  repository: file://charts/compchem
+  version: 0.1.0
+digest: sha256:a0aee7ee1332eaf6118f42d0ca84271d36f2a110d552be1acca92b14ada87e92
+generated: "2025-09-29T14:27:20.066944386+02:00"

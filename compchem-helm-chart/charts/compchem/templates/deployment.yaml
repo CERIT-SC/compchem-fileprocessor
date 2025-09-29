@@ -1,0 +1,111 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "compchem.fullname" . }}
+  labels:
+    {{- include "compchem.labels" . | nindent 4 }}
+    app.kubernetes.io/component: compchem
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "compchem.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: compchem
+  template:
+    metadata:
+      labels:
+        {{- include "compchem.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: compchem
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+    spec:
+      containers:
+        - name: compchem
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: https
+              containerPort: {{ .Values.service.httpsPort }}
+              protocol: TCP
+            {{- if .Values.service.statsPort }}
+            - name: stats
+              containerPort: {{ .Values.service.statsPort }}
+              protocol: TCP
+            {{- end }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "compchem.fullname" . }}-config
+            - secretRef:
+                name: {{ include "compchem.fullname" . }}-secret
+          volumeMounts:
+            - name: secret-key
+              mountPath: /etc/invenio/secrets
+              readOnly: true
+            {{- if .Values.tls.cert }}
+            - name: tls
+              mountPath: /etc/ssl/certs
+              readOnly: true
+            - name: tls
+              mountPath: /etc/ssl/private
+              readOnly: true
+            {{- end }}
+            {{- if .Values.persistence.enabled }}
+            - name: data
+              mountPath: {{ .Values.instancePath }}
+            {{- end }}
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: https
+              scheme: HTTPS
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: https
+              scheme: HTTPS
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: secret-key
+          secret:
+            secretName: {{ include "compchem.fullname" . }}-secret
+            items:
+              - key: secret-key
+                path: secret-key
+        {{- if .Values.tls.cert }}
+        - name: tls
+          secret:
+            secretName: {{ include "compchem.fullname" . }}-secret
+            items:
+              - key: tls.crt
+                path: tls.crt
+              - key: tls.key
+                path: tls.key
+        {{- end }}
+        {{- if .Values.persistence.enabled }}
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "compchem.fullname" . }}-data
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "compchem.serviceAccountName" . }}

@@ -13,6 +13,7 @@ FROM scratch
 
 WORKDIR /app
 
+COPY migrations /app/migrations
 COPY --from=builder /app/compchem-fileprocessor .
 
 ENTRYPOINT ["./compchem-fileprocessor"]

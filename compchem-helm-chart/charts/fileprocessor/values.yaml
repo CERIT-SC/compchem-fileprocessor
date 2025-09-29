@@ -1,0 +1,130 @@
+enabled: true
+
+image:
+  repository: docker.io/xkollar173/fileprocessor
+  tag: "0.1.0"
+  pullPolicy: Always
+
+replicaCount: 1
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 8062
+
+# Server configuration
+server:
+  host: localhost
+  port: 8062
+  contextPath: "/api"
+
+argoWorkflows:
+  url: https://localhost:2746
+  namespace: "argo"
+
+# CompChem service configuration
+compchem:
+  url: https://host-service.argo.svc.cluster.local:5000/api/experiments
+
+# Database migrations
+migrations: "file://migrations"
+
+
+# Workflow processing configuration
+# This section defines the file processing workflows available in the system
+# Each workflow specifies:
+# - name: unique identifier for the workflow
+# - filetype: MIME type of files this workflow can process
+# - processing-templates: list of Argo workflow templates to execute
+#
+# Example configuration:
+# workflows:
+#   - name: count-words
+#     filetype: text/plain
+#     processing-templates:
+#       - name: count-words-template
+#         template: count-words
+#   - name: count-words-json
+#     filetype: application/json
+#     processing-templates:
+#       - name: count-words-template
+#         template: count-words
+#   - name: process-csv
+#     filetype: text/csv
+#     processing-templates:
+#       - name: validate-csv-template
+#         template: validate-csv
+#       - name: transform-csv-template
+#         template: transform-csv
+workflows: []
+
+# Resource limits and requests
+resources: {}
+  # limits:
+  #   cpu: 500m
+  #   memory: 512Mi
+  # requests:
+  #   cpu: 250m
+  #   memory: 256Mi
+
+# Node selector for pod assignment
+nodeSelector: {}
+
+# Tolerations for pod assignment
+tolerations: []
+
+# Affinity for pod assignment
+affinity: {}
+
+# Argo Workflows dependency configuration
+argo:
+  # Enable Argo Workflows deployment
+  enabled: true
+
+  # Override default argo-workflows values here
+  # Refer to: https://github.com/argoproj/argo-helm/tree/main/charts/argo-workflows
+  controller:
+    workflowNamespaces:
+      - compchem
+  server:
+    enabled: true
+
+# PostgreSQL dependency configuration for fileprocessor
+postgres:
+  # Enable PostgreSQL deployment for fileprocessor
+  enabled: true
+
+  # PostgreSQL configuration
+  # Refer to: https://github.com/bitnami/charts/tree/main/bitnami/postgresql
+  auth:
+    postgresPassword: "postgres123"
+    username: "fileprocessor"
+    password: "password123"
+    database: "fileprocessor"
+
+  # PostgreSQL service configuration
+  primary:
+    service:
+      ports:
+        postgresql: 5432
+
+    # Resource configuration for PostgreSQL
+    resources:
+      limits:
+        memory: 512Mi
+        cpu: 500m
+      requests:
+        memory: 256Mi
+        cpu: 250m
+
+    # Persistence configuration
+    persistence:
+      enabled: true
+      size: 8Gi
+      # storageClass: ""  # Use default storage class
+
+  # Metrics and monitoring
+  metrics:
+    enabled: false
+    # serviceMonitor:
+    #   enabled: false

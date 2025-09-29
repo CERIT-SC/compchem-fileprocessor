@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "compchem.fullname" . }}
+  labels:
+    {{- include "compchem.labels" . | nindent 4 }}
+    app.kubernetes.io/component: compchem
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.httpsPort }}
+      targetPort: https
+      protocol: TCP
+      name: https
+      {{- if and (eq .Values.service.type "NodePort") .Values.service.httpsNodePort }}
+      nodePort: {{ .Values.service.httpsNodePort }}
+      {{- end }}
+    {{- if .Values.service.statsPort }}
+    - port: {{ .Values.service.statsPort }}
+      targetPort: stats
+      protocol: TCP
+      name: stats
+      {{- if and (eq .Values.service.type "NodePort") .Values.service.statsNodePort }}
+      nodePort: {{ .Values.service.statsNodePort }}
+      {{- end }}
+    {{- end }}
+  selector:
+    {{- include "compchem.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: compchem
