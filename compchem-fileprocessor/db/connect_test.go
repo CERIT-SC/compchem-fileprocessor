@@ -95,7 +95,10 @@ func TestConnect_DbExists_ConnectedAndMigratedToCorrectSchema(t *testing.T) {
 			Password: "test123",
 			Username: "test",
 		},
-	}, fmt.Sprintf("file://../migrations"))
+	}, "file://../migrations")
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	defer pool.Close()
 

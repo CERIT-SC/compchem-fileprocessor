@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"fi.muni.cz/invenio-file-processor/v2/config"
-	"fi.muni.cz/invenio-file-processor/v2/jsonapi"
+	"fi.muni.cz/invenio-file-processor/v2/routes/health"
 	active_workflows "fi.muni.cz/invenio-file-processor/v2/routes/workflow/active"
 	"fi.muni.cz/invenio-file-processor/v2/routes/workflow/available"
 	start_workflow_route "fi.muni.cz/invenio-file-processor/v2/routes/workflow/start"
@@ -33,8 +33,13 @@ func AddRoutes(
 	}
 
 	mux.Handle(
+		buildPathV1(config.ApiContext, "/health/liveness"),
+		middleware(methodHandler(http.MethodGet, health.HandleLive())),
+	)
+
+	mux.Handle(
 		buildPathV1(config.ApiContext, "/health/readiness"),
-		middleware(methodHandler(http.MethodGet, handleReady(ctx, pool))),
+		middleware(methodHandler(http.MethodGet, health.HandleReady(ctx, pool))),
 	)
 
 	mux.Handle(
@@ -108,23 +113,6 @@ func methodHandler(allowedMethod string, handler http.Handler) http.Handler {
 	})
 }
 
-func handleReady(ctx context.Context, pool *pgxpool.Pool) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodGet {
-			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-		}
-		// TODO: add ping to database to make sure API is ready
-
-		type readyResponse struct {
-			Ready bool `json:"ready"`
-		}
-
-		resp := readyResponse{Ready: true}
-		if err := jsonapi.Encode(w, r, http.StatusOK, resp); err != nil {
-			http.Error(w, "failed to encode response", http.StatusInternalServerError)
-		}
-	})
-}
 
 func buildPathV1(apiContext string, path string) string {
 	return apiContext + "/v1" + path
