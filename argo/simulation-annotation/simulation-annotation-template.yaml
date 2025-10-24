@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: simulation-annotation-template
+spec:
+  entrypoint: simulation-annotation
+  arguments:
+    artifacts:
+    - name: input-files
+    - name: output-files
+  templates:
+  - name: simulation-annotation
+    inputs:
+      artifacts:
+      - name: input-files
+        path: /input
+    outputs:
+      artifacts:
+      - name: output-files
+        path: /output
+    container:
+      image: xkollar173/argo-simulation-annotation:0.0.2
+      command: [sh, "-c"]
+      args:
+        - ./simulation-annotation.sh

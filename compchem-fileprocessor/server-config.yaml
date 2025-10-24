@@ -22,13 +22,8 @@ postgres:
     password: password123
 
 workflows:
-  - name: count-words
-    filetype: text/plain
+  - name: simulation-annotation
+    filetype: application/octet-stream
     processing-templates:
-      - name: count-words-template
-        template: count-words
-  - name: count-words-json
-    filetype: application/json
-    processing-templates:
-      - name: count-words-template
-        template: count-words
+      - name: simulation-annotation-template
+        template: simulation-annotation

@@ -9,9 +9,9 @@ spec:
     - name: base-url
       value: https://host-service.argo.svc.cluster.local:5000/api/experiments
     - name: file-ids
-      value: test-count.txt 
+      value: test-count.txt
     - name: record-id
-      value: ew6jd-p8175 
+      value: ew6jd-p8175
 
   templates:
   - name: read-count-write
@@ -30,10 +30,10 @@ spec:
           - name: file-ids
             value: "{{workflow.parameters.file-ids}}"
 
-      - name: count-words-12345-2 
+      - name: count-words-12345-2
         dependencies: [read-files-12345-2]
         templateRef:
-          name: count-words-template 
+          name: count-words-template
           template: count-words
         arguments:
           artifacts:
@@ -43,8 +43,8 @@ spec:
       - name: write-files-12345-2
         dependencies: [count-words-12345-2]
         templateRef:
-          name: write-files-template 
-          template: upload-files 
+          name: write-files-template
+          template: upload-files
         arguments:
           parameters:
           - name: base-url
@@ -52,5 +52,5 @@ spec:
           - name: record-id
             value: "{{workflow.parameters.record-id}}"
           artifacts:
-          - name: input-files 
+          - name: input-files
             from: "{{tasks.count-words-12345-2.outputs.artifacts.output-files}}"
