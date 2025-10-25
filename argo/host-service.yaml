@@ -17,7 +17,6 @@ metadata:
   namespace: argo
 subsets:
 - addresses:
-  - ip: 172.17.0.1  # Your host IP as seen from the container
+  - ip: 172.17.0.1 # Docker ip
   ports:
   - port: 5000
-

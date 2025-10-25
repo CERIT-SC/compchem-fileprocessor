@@ -30,3 +30,6 @@ go.work.sum
 scratch/*
 
 __debug*
+
+
+*.tgz

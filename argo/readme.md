@@ -1,4 +1,10 @@
+# Argo workflows
+
+This directory contains all argo workflows related stuff like WorkflowTemplates and example Workflows.
+
 ### Access localhost from within the cluster
+
+Below is a short guide on how to be able to connect to a local instance of the compchem repo running on port 5000 from within a kubernetes Pod. This is done because workflows run as Pods and they need to communicate with the repository. This is only done for the purposes of development, with a repo running directly on the dev machine.
 
 
 Create a service, then endpoint to connect to docker
@@ -33,4 +39,4 @@ sudo socat TCP-LISTEN:5000,bind=$(ip -4 addr show docker0 | grep -Po 'inet \K[\d
 
 Then from within a pod localhost:5000 is available on: host-service.argo.svc.cluster.local:5000
 
-must use header -H "Host: localhost"
+must use header -H "Host: localhost" in requests
