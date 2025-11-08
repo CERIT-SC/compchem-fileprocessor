@@ -17,11 +17,14 @@ To configure workflows the application will make available use the workflows pro
 ```
 workflows:
   - name: simulation-annotation
-    filetype: application/octet-stream
+    mimetype: application/octet-stream
+    extension: tpr
     processing-templates:
       - name: simulation-annotation-template
         template: simulation-annotation
 ```
+
+For a file to be eligible for a workflow its extension must exactly match whats specified in the worklow AND the mimetype in files metadata needs to match.
 
 A single workflow may have any amount of processing templates they are all run in parallel.
 
