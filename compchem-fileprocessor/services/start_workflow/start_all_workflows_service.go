@@ -3,6 +3,8 @@ package startworkflow_service
 import (
 	"context"
 	"fmt"
+	"regexp"
+	"strings"
 
 	"fi.muni.cz/invenio-file-processor/v2/api/argodtos"
 	"fi.muni.cz/invenio-file-processor/v2/config"
@@ -153,9 +155,21 @@ func findFilesForConfig(
 	files []services.File,
 ) ConfigWithFiles {
 	result := []services.File{}
+	fileExtensionRegex := regexp.MustCompile(`\.([^.]+)$`)
 
 	for _, file := range files {
-		if file.Mimetype == conf.Filetype {
+		if file.Mimetype != conf.Mimetype {
+			continue
+		}
+
+		matches := fileExtensionRegex.FindStringSubmatch(file.FileName)
+		if len(matches) < 2 {
+			continue
+		}
+
+		fileExt := strings.ToLower(matches[1])
+
+		if fileExt == conf.Extension {
 			result = append(result, file)
 		}
 	}

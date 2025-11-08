@@ -31,8 +31,9 @@ func (s *startWorkflowServiceTestSuite) TestFindWorkflowConfig_MatchingConfigExi
 	t := s.PostgresTestSuite.T()
 	configs := []config.WorkflowConfig{
 		{
-			Name:     "text-processing",
-			Filetype: "txt",
+			Name:      "text-processing",
+			Mimetype:  "txt",
+			Extension: "txt",
 		},
 	}
 
@@ -45,8 +46,9 @@ func (s *startWorkflowServiceTestSuite) TestFindWorkflowConfig_NoConfig_ErorrRet
 	t := s.PostgresTestSuite.T()
 	configs := []config.WorkflowConfig{
 		{
-			Name:     "image-processing",
-			Filetype: "png",
+			Name:      "image-processing",
+			Mimetype:  "application/octect-stream",
+			Extension: "png",
 		},
 	}
 
@@ -59,8 +61,9 @@ func (s *startWorkflowServiceTestSuite) TestCreateWorkflow_WorkflowCreated_DbInC
 	t := s.PostgresTestSuite.T()
 	configs := []config.WorkflowConfig{
 		{
-			Name:     "count-words",
-			Filetype: "txt",
+			Name:      "count-words",
+			Mimetype:  "text/plain",
+			Extension: "txt",
 			ProcessingTemplates: []config.ProcessingTemplate{
 				{
 					Name:     "count-words",
@@ -83,11 +86,11 @@ func (s *startWorkflowServiceTestSuite) TestCreateWorkflow_WorkflowCreated_DbInC
 		[]services.File{
 			{
 				FileName: "test.txt",
-				Mimetype: "txt",
+				Mimetype: "text/plain",
 			},
 			{
 				FileName: "test2.txt",
-				Mimetype: "txt",
+				Mimetype: "text/plain",
 			},
 		},
 		"http://localhost:7000",
@@ -108,7 +111,7 @@ func (s *startWorkflowServiceTestSuite) TestCreateWorkflow_WorkflowCreated_DbInC
 		"SELECT * FROM compchem_file WHERE file_key = 'test.txt'",
 	)
 	assert.NoError(t, err)
-	assert.Equal(t, file.Mimetype, "txt")
+	assert.Equal(t, file.Mimetype, "text/plain")
 	assert.Equal(t, file.FileKey, "test.txt")
 	assert.Equal(t, file.RecordId, "ej26y-ad28j")
 	assert.NotEmpty(t, file.Id)
@@ -119,7 +122,7 @@ func (s *startWorkflowServiceTestSuite) TestCreateWorkflow_WorkflowCreated_DbInC
 		"SELECT * FROM compchem_file WHERE file_key = 'test2.txt'",
 	)
 	assert.NoError(t, err)
-	assert.Equal(t, file1.Mimetype, "txt")
+	assert.Equal(t, file1.Mimetype, "text/plain")
 	assert.Equal(t, file1.FileKey, "test2.txt")
 	assert.Equal(t, file1.RecordId, "ej26y-ad28j")
 	assert.NotEmpty(t, file1.Id)

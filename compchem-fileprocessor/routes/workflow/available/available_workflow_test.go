@@ -21,7 +21,7 @@ func TestAvailableWorkflowsHandler_ValidBody_CorrectResponseReturned(t *testing.
 	configs := []config.WorkflowConfig{
 		{
 			Name:     "count-words",
-			Filetype: "text/plain",
+			Mimetype: "text/plain",
 			ProcessingTemplates: []config.ProcessingTemplate{
 				{
 					Name:     "count-words",
@@ -31,7 +31,7 @@ func TestAvailableWorkflowsHandler_ValidBody_CorrectResponseReturned(t *testing.
 		},
 		{
 			Name:     "downsizeto480p",
-			Filetype: "image/jpeg",
+			Mimetype: "image/jpeg",
 			ProcessingTemplates: []config.ProcessingTemplate{
 				{
 					Name:     "downsizepng",
@@ -92,7 +92,7 @@ func TestAvailableWorkflowsHandler_ValidBodyNoConfigs_EmtpyOKResponse(t *testing
 	configs := []config.WorkflowConfig{
 		{
 			Name:     "count-words",
-			Filetype: "text/plain",
+			Mimetype: "text/plain",
 			ProcessingTemplates: []config.ProcessingTemplate{
 				{
 					Name:     "count-words",

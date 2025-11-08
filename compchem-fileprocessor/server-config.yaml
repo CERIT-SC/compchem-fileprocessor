@@ -23,7 +23,8 @@ postgres:
 
 workflows:
   - name: simulation-annotation
-    filetype: application/octet-stream
+    mimetype: application/octet-stream
+    extension: tpr
     processing-templates:
       - name: simulation-annotation-template
         template: simulation-annotation

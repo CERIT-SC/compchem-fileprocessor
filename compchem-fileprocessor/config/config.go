@@ -48,7 +48,8 @@ type ArgoApi struct {
 
 type WorkflowConfig struct {
 	Name                string               `yaml:"name"`
-	Filetype            string               `yaml:"filetype"`
+	Mimetype            string               `yaml:"mimetype"`
+	Extension           string               `yaml:"extension"`
 	ProcessingTemplates []ProcessingTemplate `yaml:"processing-templates"`
 }
 
@@ -199,8 +200,11 @@ func validateWorkflows(workflows []WorkflowConfig, errors map[string]string) {
 		if workflow.Name == "" {
 			errors[fmt.Sprintf(errorTemplate, "name", index)] = "missing name"
 		}
-		if workflow.Filetype == "" {
-			errors[fmt.Sprintf(errorTemplate, "filetype", index)] = "missing filetype"
+		if workflow.Mimetype == "" {
+			errors[fmt.Sprintf(errorTemplate, "mimetype", index)] = "missing filetype"
+		}
+		if workflow.Extension == "" {
+			errors[fmt.Sprintf(errorTemplate, "extension", index)] = "missing extension"
 		}
 		if len(workflow.ProcessingTemplates) > 0 {
 			validateProcessingTemplates(workflow.ProcessingTemplates, index, errors)

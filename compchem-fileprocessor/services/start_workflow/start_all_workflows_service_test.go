@@ -31,8 +31,9 @@ func (s *startAllWorkflowsTestSuite) TestFindAllMatchingConfigs_NoneMatchProvide
 	t := s.PostgresTestSuite.T()
 	configs := []config.WorkflowConfig{
 		{
-			Name:     "text-processing",
-			Filetype: "txt",
+			Name:      "text-processing",
+			Mimetype:  "text/plain",
+			Extension: "txt",
 		},
 	}
 
@@ -50,8 +51,9 @@ func (s *startAllWorkflowsTestSuite) TestFindAllMatchingConfigs_FilesMatchSingle
 	t := s.PostgresTestSuite.T()
 	configs := []config.WorkflowConfig{
 		{
-			Name:     "image-processing",
-			Filetype: "image/png",
+			Name:      "image-processing",
+			Mimetype:  "image/png",
+			Extension: "png",
 		},
 	}
 
@@ -86,12 +88,14 @@ func (s *startAllWorkflowsTestSuite) TestFindAllMatchingCnofigs_FilesMatchMultip
 	t := s.PostgresTestSuite.T()
 	configs := []config.WorkflowConfig{
 		{
-			Name:     "image-processing",
-			Filetype: "image/png",
+			Name:      "image-processing",
+			Mimetype:  "image/png",
+			Extension: "png",
 		},
 		{
-			Name:     "text-processing",
-			Filetype: "text/plain",
+			Name:      "text-processing",
+			Mimetype:  "text/plain",
+			Extension: "txt",
 		},
 	}
 
@@ -153,8 +157,9 @@ func (s *startAllWorkflowsTestSuite) TestCreateWorkflowsWithAllConfigs_TwoConfig
 	t := s.PostgresTestSuite.T()
 	configs := []config.WorkflowConfig{
 		{
-			Name:     "count-words",
-			Filetype: "txt",
+			Name:      "count-words",
+			Mimetype:  "text/plain",
+			Extension: "txt",
 			ProcessingTemplates: []config.ProcessingTemplate{
 				{
 					Name:     "count-words",
@@ -163,8 +168,9 @@ func (s *startAllWorkflowsTestSuite) TestCreateWorkflowsWithAllConfigs_TwoConfig
 			},
 		},
 		{
-			Name:     "compress-images",
-			Filetype: "jpeg",
+			Name:      "compress-images",
+			Mimetype:  "application/octect-stream",
+			Extension: "jpeg",
 			ProcessingTemplates: []config.ProcessingTemplate{
 				{
 					Name:     "compress-images",
@@ -186,15 +192,15 @@ func (s *startAllWorkflowsTestSuite) TestCreateWorkflowsWithAllConfigs_TwoConfig
 		[]services.File{
 			{
 				FileName: "test.txt",
-				Mimetype: "txt",
+				Mimetype: "text/plain",
 			},
 			{
 				FileName: "test2.txt",
-				Mimetype: "txt",
+				Mimetype: "text/plain",
 			},
 			{
 				FileName: "image.jpeg",
-				Mimetype: "jpeg",
+				Mimetype: "application/octect-stream",
 			},
 			{
 				FileName: "sitemap.xml",
@@ -226,7 +232,7 @@ func (s *startAllWorkflowsTestSuite) TestCreateWorkflowsWithAllConfigs_TwoConfig
 		"SELECT * FROM compchem_file WHERE file_key = 'test.txt'",
 	)
 	assert.NoError(t, err)
-	assert.Equal(t, file.Mimetype, "txt")
+	assert.Equal(t, file.Mimetype, "text/plain")
 	assert.Equal(t, file.FileKey, "test.txt")
 	assert.Equal(t, file.RecordId, "ej26y-ad28j")
 	assert.NotEmpty(t, file.Id)
@@ -237,7 +243,7 @@ func (s *startAllWorkflowsTestSuite) TestCreateWorkflowsWithAllConfigs_TwoConfig
 		"SELECT * FROM compchem_file WHERE file_key = 'test2.txt'",
 	)
 	assert.NoError(t, err)
-	assert.Equal(t, file1.Mimetype, "txt")
+	assert.Equal(t, file1.Mimetype, "text/plain")
 	assert.Equal(t, file1.FileKey, "test2.txt")
 	assert.Equal(t, file1.RecordId, "ej26y-ad28j")
 	assert.NotEmpty(t, file1.Id)
@@ -248,7 +254,7 @@ func (s *startAllWorkflowsTestSuite) TestCreateWorkflowsWithAllConfigs_TwoConfig
 		"SELECT * FROM compchem_file WHERE file_key = 'image.jpeg'",
 	)
 	assert.NoError(t, err)
-	assert.Equal(t, file2.Mimetype, "jpeg")
+	assert.Equal(t, file2.Mimetype, "application/octect-stream")
 	assert.Equal(t, file2.FileKey, "image.jpeg")
 	assert.Equal(t, file2.RecordId, "ej26y-ad28j")
 	assert.NotEmpty(t, file2.Id)

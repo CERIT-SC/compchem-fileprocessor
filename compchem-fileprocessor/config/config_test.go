@@ -91,7 +91,7 @@ func TestValidateConfig_ConfigNotOk_ConfigValidationNotOk(t *testing.T) {
 	}
 
 	result, errs := validateConfig(logger, cfg)
-	if len(errs) != 10 {
+	if len(errs) != 11 {
 		t.Errorf(
 			"Expected 9go get github.com/jackc/puddle/v2@v2.2. validation errors, got: %v",
 			errs,
@@ -126,7 +126,8 @@ compchem:
 
 workflows:
   - name: count-words
-    filetype: txt
+    mimetype: text/plain
+    extension: txt
     processing-templates:
       - name: count-words-template
         template: count-words
@@ -174,7 +175,8 @@ postgres:
 	// Check Workflows
 	assert.Equal(t, 1, len(config.Workflows), "Should have 1 workflow configured")
 	assert.Equal(t, "count-words", config.Workflows[0].Name, "Workflow name should match")
-	assert.Equal(t, "txt", config.Workflows[0].Filetype, "Workflow filetype should match")
+	assert.Equal(t, "text/plain", config.Workflows[0].Mimetype, "Workflow filetype should match")
+	assert.Equal(t, "txt", config.Workflows[0].Extension, "Workflow extension should match")
 
 	assert.Equal(
 		t,

@@ -52,7 +52,7 @@ func TestCreateResponse_TwoConfigs_CorrectResponse(t *testing.T) {
 	configs := []config.WorkflowConfig{
 		{
 			Name:     "count-words",
-			Filetype: "text/plain",
+			Mimetype: "text/plain",
 			ProcessingTemplates: []config.ProcessingTemplate{
 				{
 					Name:     "count-words",
@@ -62,7 +62,7 @@ func TestCreateResponse_TwoConfigs_CorrectResponse(t *testing.T) {
 		},
 		{
 			Name:     "downsizeto480p",
-			Filetype: "image/jpeg",
+			Mimetype: "image/jpeg",
 			ProcessingTemplates: []config.ProcessingTemplate{
 				{
 					Name:     "downsizepng",
@@ -120,7 +120,7 @@ func TestAvailableWorkflows_TwoConfigs_ReturnsCorrectResponse(t *testing.T) {
 	configs := []config.WorkflowConfig{
 		{
 			Name:     "count-words",
-			Filetype: "text/plain",
+			Mimetype: "text/plain",
 			ProcessingTemplates: []config.ProcessingTemplate{
 				{
 					Name:     "count-words",
@@ -130,7 +130,7 @@ func TestAvailableWorkflows_TwoConfigs_ReturnsCorrectResponse(t *testing.T) {
 		},
 		{
 			Name:     "downsizeto480p",
-			Filetype: "image/jpeg",
+			Mimetype: "image/jpeg",
 			ProcessingTemplates: []config.ProcessingTemplate{
 				{
 					Name:     "downsizepng",

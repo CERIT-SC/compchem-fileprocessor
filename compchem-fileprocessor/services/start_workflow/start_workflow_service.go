@@ -3,6 +3,9 @@ package startworkflow_service
 import (
 	"context"
 	"errors"
+	"fmt"
+	"regexp"
+	"strings"
 
 	"fi.muni.cz/invenio-file-processor/v2/api/argodtos"
 	"fi.muni.cz/invenio-file-processor/v2/config"
@@ -115,7 +118,7 @@ func findWorkflowConfig(
 ) (*config.WorkflowConfig, error) {
 	for _, conf := range configs {
 		if conf.Name == name {
-			if err := validateFiles(conf.Filetype, files); err != nil {
+			if err := validateFiles(conf.Mimetype, conf.Extension, files); err != nil {
 				return nil, err
 			}
 			return &conf, nil
@@ -127,12 +130,29 @@ func findWorkflowConfig(
 
 func validateFiles(
 	mimetype string,
+	extension string,
 	files []services.File,
 ) error {
 	for _, file := range files {
 		if file.Mimetype != mimetype {
-			return errors.New(
-				"Workflow requires: " + mimetype + " ,found file with type: " + file.Mimetype,
+			return fmt.Errorf(
+				"workflow requires mimetype: %s, found file %s with type: %s",
+				mimetype, file.FileName, file.Mimetype,
+			)
+		}
+
+		fileExtensionRegex := regexp.MustCompile(`\.([^.]+)$`)
+		matches := fileExtensionRegex.FindStringSubmatch(file.FileName)
+		if len(matches) < 2 {
+			return fmt.Errorf("file %s has no extension", file.FileName)
+		}
+
+		fileExt := strings.ToLower(matches[1])
+
+		if fileExt != extension {
+			return fmt.Errorf(
+				"file %s has extension .%s, expected .%s",
+				file.FileName, fileExt, extension,
 			)
 		}
 	}

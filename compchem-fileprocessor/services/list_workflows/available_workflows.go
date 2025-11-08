@@ -36,10 +36,10 @@ func convertMapToAvailableWorkflows(
 ) *AvailableWorkflowsResponse {
 	workflows := []AvailableWorkflow{}
 	for _, workflow := range configs {
-		if eligibleFiles, isPresent := mimeTypeMap[workflow.Filetype]; isPresent {
+		if eligibleFiles, isPresent := mimeTypeMap[workflow.Mimetype]; isPresent {
 			workflows = append(workflows, AvailableWorkflow{
 				Name:     workflow.Name,
-				Mimetype: workflow.Filetype,
+				Mimetype: workflow.Mimetype,
 				Files:    eligibleFiles,
 			})
 		}
